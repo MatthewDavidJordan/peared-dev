@@ -36,7 +36,7 @@ export default function SchoolList({ schools }: Props) {
       />
       <div className={styles.schoolGrid}>
         {filteredSchools.map((school, index) => (
-          <Fade key={index} direction="up" duration={1500} delay={index * 100}>
+          <Fade key={school.id} direction="up" duration={1000} delay={index * 100}>
             <div
               className={styles.schoolRectangle}
               style={{ backgroundColor: "#" + school.color_hex_code }}

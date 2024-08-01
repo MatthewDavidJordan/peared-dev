@@ -21,7 +21,7 @@ export default async function DisplayCalendly({ params }: Props) {
       alignItems: 'center',
       justifyContent: 'center',
       width: '100%',
-      height: '100vh', // Full viewport height
+      height: '100vh',
       boxSizing: 'border-box',
       padding: '20px',
       }}

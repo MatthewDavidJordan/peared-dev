@@ -1,28 +1,27 @@
 .schoolGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 25px;
-  justify-items: center;
-  align-items: center;
+  gap: 20px;
   width: 100%;
   max-width: 1200px;
+  padding: 0 20px;
+  margin: 0 auto;
 }
-  
+
 .schoolRectangle {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 235px;
-  height: 75px;
+  width: 100%;
+  aspect-ratio: 3 / 1;
   border-radius: 50px;
   background-color: #ccc;
-  padding: 20px;
+  padding: 10px;
   cursor: pointer;
 }
 
 .schoolName {
-  font-size: 1.2em;
+  font-size: clamp(0.8rem, 2vw, 1.2rem);
   font-weight: 600;
   color: white;
   text-align: center;
@@ -32,13 +31,11 @@
   width: 100%;
   max-width: 600px;
   padding: 10px 20px;
-  margin-bottom: 10px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-bottom: 20px;
   border: 1px solid #ccc;
   border-radius: 50px;
   outline: none;
-  font-size: 16px;
+  font-size: clamp(14px, 2vw, 16px);
   color: #333;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -49,78 +46,35 @@
   box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
 }
 
-/* Media Queries for Responsiveness */
-@media (max-width: 1150px) {
+@media (max-width: 1000px) {
   .schoolGrid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px; /* Smaller gap for smaller screens */
-    padding: 0 100px; /* Increase padding to move pills away from the sides */
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .schoolGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    padding: 0 15px;
   }
 
-  .schoolRectangle {
-    width: 225px; /* Smaller width for pills */
-    height: 80px; /* Smaller height for pills */
-    padding: 10px; /* Adjust padding */
-  }
-}
-
-@media (max-width: 750px) {
-  .schoolGrid {
-    grid-template-columns: repeat(2, 1fr); /* Ensure at least two in a row */
-    gap: 20px; /* Smaller gap for smaller screens */
-    padding: 0 80px; /* Increase padding to move pills away from the sides */
-  }
-
-  .schoolRectangle {
-    width: 200px; /* Smaller width for pills */
-    height: 60px; /* Smaller height for pills */
-    padding: 10px; /* Adjust padding */
-  }
-
-  .schoolName {
-    font-size: 0.9em; /* Smaller font size */
+  .searchBar {
+    padding: 8px 16px;
   }
 }
 
-
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   .schoolGrid {
-    grid-template-columns: repeat(2, 1fr); /* Ensure at least two in a row */
-    gap: 20px; /* Smaller gap for smaller screens */
-    padding: 0 30px; /* Increase padding to move pills away from the sides */
+    gap: 10px;
+    padding: 0 10px;
   }
 
   .schoolRectangle {
-    width: 175px; /* Smaller width for pills */
-    height: 50px; /* Smaller height for pills */
-    padding: 10px; /* Adjust padding */
+    aspect-ratio: 2.5 / 1;
   }
 
-  .schoolName {
-    font-size: 0.8em; /* Smaller font size */
-  }
-}
-
-@media (max-width: 450px) {
-  .schoolGrid {
-    grid-template-columns: repeat(2, 1fr); /* Ensure at least two in a row */
-    gap: 20px; /* Smaller gap for smaller screens */
-    padding: 0 10px; /* Increase padding to move pills away from the sides */
-  }
-
-  .schoolRectangle {
-    width: 140px; /* Smaller width for pills */
-    height: 45px; /* Smaller height for pills */
-    padding: 10px; /* Adjust padding */
-  }
-
-  .schoolName {
-    font-size: 0.7em; /* Smaller font size */
+  .searchBar {
+    padding: 6px 12px;
   }
 }

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import styles from "./page.module.css";
 import SchoolList from "@/app/SchoolList";
 import { loadSchools } from "@/lib/queries";
