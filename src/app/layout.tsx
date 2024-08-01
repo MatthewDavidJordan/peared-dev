@@ -1,25 +1,17 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-
-import { AntdRegistry } from "@ant-design/nextjs-registry";
-
-const inter = Inter({ subsets: ["latin"] });
+import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry";
 
 export const metadata: Metadata = {
   title: "College Compass",
   description: "Find your perfect college (student) advisor.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <AntdRegistry>{children}</AntdRegistry>
+      <body>
+        <ThemeRegistry>{props.children}</ThemeRegistry>
       </body>
     </html>
   );

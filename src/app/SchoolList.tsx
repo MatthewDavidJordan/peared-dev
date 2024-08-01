@@ -17,10 +17,14 @@ export default function SchoolList({ schools }: Props) {
     return school.name.toLowerCase().includes(term.toLowerCase());
   });
 
-  const handleSchoolClick = (schoolName: string) => {
+  const handleSchoolClick = (school: School) => {
     // Handle the school click here
-    console.log(schoolName);
+    console.log(school.id);
   };
+
+  // TODO: Add image logos for each school
+
+  // TODO: Make the animation only happen the first time the page loads
 
   return (
     <>
@@ -36,7 +40,7 @@ export default function SchoolList({ schools }: Props) {
             <div
               className={styles.schoolRectangle}
               style={{ backgroundColor: "#" + school.color_hex_code }}
-              onClick={school.disabled ? undefined : () => handleSchoolClick(school.name)}
+              onClick={school.disabled ? undefined : () => handleSchoolClick(school)}
             >
               <Link href={"/schools/" + school.id}>
                 <span className={styles.schoolName}>{school.name}</span>

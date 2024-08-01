@@ -1,18 +1,58 @@
-import { School } from "@/models";
+import { Advisor, School } from "@/models";
 import { getDbClient } from "@/utils/supabase/client";
 
 export async function loadSchools(): Promise<School[]> {
-  const client = await getDbClient();
-  const { data, error } = await client
-    .from('schools')
-    .select('*');
+  const supabase_client = await getDbClient();
+
+  const getAllSchoolsQuery = supabase_client
+  .from('schools')
+  .select('*');
+
+  const { data: schools, error } = await getAllSchoolsQuery;
 
   if (error) {
     console.error('Error fetching schools:', error);
     return [];
   }
 
-  return data as School[];
+  return schools ?? [];
+}
+
+// load all advisors for a school
+export async function loadAdvisorsBySchoolId(school_id: string): Promise<Advisor[]> {
+  const supabase_client = await getDbClient();
+
+  const getAllAdvisorsQuery = supabase_client
+  .from('advisors')
+  .select('*')
+  .eq('school_id', school_id);
+
+  const { data: advisors, error } = await getAllAdvisorsQuery;
+
+  if (error) {
+    console.error('Error fetching advisors:', error);
+    return [];
+  }
+
+  return advisors ?? [];
+}
+
+export async function getCalendlyUrlFromAdvisorId(advisor_id: string) {
+  const supabase_client = await getDbClient();
+
+  const getAdvisorQuery = supabase_client
+  .from('advisors')
+  .select('calendly_url')
+  .eq('id', advisor_id);
+
+  const { data: advisor, error } = await getAdvisorQuery;
+
+  if (error) {
+    console.error('Error fetching advisor:', error);
+    return '';
+  }
+
+  return advisor[0].calendly_url;
 }
 
 // export async function loadCat(id: string) {
