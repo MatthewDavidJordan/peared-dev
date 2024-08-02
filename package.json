@@ -12,6 +12,8 @@
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
     "@fontsource/inter": "^5.0.19",
+    "@fortawesome/free-solid-svg-icons": "^6.6.0",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "@mui/joy": "^5.0.0-beta.48",
     "@supabase/supabase-js": "^2.44.4",
     "install": "^0.13.0",
