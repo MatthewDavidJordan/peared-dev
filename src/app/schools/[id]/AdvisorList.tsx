@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { AdvisorCard } from "./AdvisorCard";
-import { Advisor } from "@/models";
+import Link from 'next/link';
+import { AdvisorCard } from './AdvisorCard';
+import { FullAdvisor } from '@/models';
 
 interface Props {
-  advisors: Advisor[];
+  advisors: FullAdvisor[];
 }
 
 export default function AdvisorList({ advisors }: Props) {
@@ -21,11 +21,9 @@ export default function AdvisorList({ advisors }: Props) {
 
   return (
     <>
+      <h2>Advisors</h2>
       {advisors.map((advisor) => (
-        <AdvisorCard
-            key={advisor.id}
-            advisor={advisor}
-        />
+        <AdvisorCard key={advisor.id} advisor={advisor} />
       ))}
     </>
   );

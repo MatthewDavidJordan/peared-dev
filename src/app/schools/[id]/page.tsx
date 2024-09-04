@@ -1,5 +1,6 @@
-import { loadAdvisorsBySchoolId } from "@/lib/queries";
-import AdvisorList from "./AdvisorList";
+import styles from './page.module.css';
+import { loadAdvisorsBySchoolId } from '@/lib/queries';
+import AdvisorList from './AdvisorList';
 
 export const revalidate = 0;
 
@@ -10,21 +11,15 @@ interface Props {
 }
 
 export default async function Home({ params }: Props) {
-
   const advisors = await loadAdvisorsBySchoolId(params.id);
 
+  // TODO: Also load the school data here like: class size, athletics division, city
+
   return (
-    <div>
-      <h1>Advisors</h1>
-      <div
-      // make the max width of the advisor list 1000px and center it
-      style={{
-        maxWidth: "1000px",
-        margin: "0 auto",
-      }}
-      >
+    <main className={styles.page}>
+      <div className={styles.advisors}>
         <AdvisorList advisors={advisors} />
       </div>
-    </div>
+    </main>
   );
 }

@@ -141,6 +141,39 @@ export type Database = {
           },
         ]
       }
+      advisor_fraternities: {
+        Row: {
+          advisor_id: string
+          fraternity_id: string
+          id: string
+        }
+        Insert: {
+          advisor_id: string
+          fraternity_id: string
+          id?: string
+        }
+        Update: {
+          advisor_id?: string
+          fraternity_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_fraternities_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advisor_fraternities_fraternity_id_fkey"
+            columns: ["fraternity_id"]
+            isOneToOne: false
+            referencedRelation: "fraternities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       advisor_languages: {
         Row: {
           advisor_id: string
@@ -339,6 +372,72 @@ export type Database = {
           },
         ]
       }
+      advisor_religions: {
+        Row: {
+          advisor_id: string
+          id: string
+          religion_id: string
+        }
+        Insert: {
+          advisor_id: string
+          id?: string
+          religion_id: string
+        }
+        Update: {
+          advisor_id?: string
+          id?: string
+          religion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_religions_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advisor_religions_religion_id_fkey"
+            columns: ["religion_id"]
+            isOneToOne: false
+            referencedRelation: "religions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_sororities: {
+        Row: {
+          advisor_id: string
+          id: string
+          sorority_id: string
+        }
+        Insert: {
+          advisor_id: string
+          id?: string
+          sorority_id: string
+        }
+        Update: {
+          advisor_id?: string
+          id?: string
+          sorority_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_sororities_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advisor_sororities_sorority_id_fkey"
+            columns: ["sorority_id"]
+            isOneToOne: false
+            referencedRelation: "sororities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       advisor_varsity_sports: {
         Row: {
           advisor_id: string
@@ -376,7 +475,7 @@ export type Database = {
         Row: {
           bio: string | null
           birthdate: string | null
-          calendly_url: string | null
+          calendly_url: string
           college_grad_month: number | null
           college_grad_year: number | null
           email: string
@@ -397,7 +496,7 @@ export type Database = {
         Insert: {
           bio?: string | null
           birthdate?: string | null
-          calendly_url?: string | null
+          calendly_url: string
           college_grad_month?: number | null
           college_grad_year?: number | null
           email: string
@@ -418,7 +517,7 @@ export type Database = {
         Update: {
           bio?: string | null
           birthdate?: string | null
-          calendly_url?: string | null
+          calendly_url?: string
           college_grad_month?: number | null
           college_grad_year?: number | null
           email?: string
@@ -503,6 +602,21 @@ export type Database = {
         Update: {
           ethnicity?: Database["public"]["Enums"]["ethnicity"]
           id?: string
+        }
+        Relationships: []
+      }
+      fraternities: {
+        Row: {
+          id: string
+          name: string
+        }
+        Insert: {
+          id?: string
+          name: string
+        }
+        Update: {
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -596,6 +710,21 @@ export type Database = {
         }
         Relationships: []
       }
+      religions: {
+        Row: {
+          id: string
+          religion: Database["public"]["Enums"]["religion"]
+        }
+        Insert: {
+          id?: string
+          religion: Database["public"]["Enums"]["religion"]
+        }
+        Update: {
+          id?: string
+          religion?: Database["public"]["Enums"]["religion"]
+        }
+        Relationships: []
+      }
       schools: {
         Row: {
           color_hex_code: string
@@ -612,6 +741,21 @@ export type Database = {
         Update: {
           color_hex_code?: string
           disabled?: boolean
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      sororities: {
+        Row: {
+          id: string
+          name: string
+        }
+        Insert: {
+          id?: string
+          name: string
+        }
+        Update: {
           id?: string
           name?: string
         }
@@ -685,6 +829,29 @@ export type Database = {
         | "Black or African American"
         | "Native Hawaiian or Other Pacific Islander"
         | "White"
+        | "Other"
+      religion:
+        | "Christianity"
+        | "Islam"
+        | "Hinduism"
+        | "Buddhism"
+        | "Sikhism"
+        | "Judaism"
+        | "Baháʼí Faith"
+        | "Jainism"
+        | "Shinto"
+        | "Zoroastrianism"
+        | "Taoism"
+        | "Confucianism"
+        | "Spiritism"
+        | "Tenrikyo"
+        | "Rastafari"
+        | "Animism"
+        | "Neo-Paganism"
+        | "Unitarian Universalism"
+        | "Atheism"
+        | "Agnosticism"
+        | "Humanism"
         | "Other"
       sex: "Male" | "Female" | "Other"
     }
