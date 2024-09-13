@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
-import "./NavBar.css";
-import { CodeIcon, HamburgerMenuClose, HamburgerMenuOpen } from "./Icons";
+import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { CodeIcon, HamburgerMenuClose, HamburgerMenuOpen } from './Icons';
+import './Navbar.css';
 
 function NavBar() {
   const [click, setClick] = useState(false);
@@ -19,14 +19,18 @@ function NavBar() {
           <span>College Compass</span>
         </Link>
 
-        <ul className={click ? "nav-menu active" : "nav-menu"}>
+        <ul className={click ? 'nav-menu active' : 'nav-menu'}>
           {/* <li className="nav-item">
             <Link href="/" className={`nav-links ${pathname === "/" ? "active" : ""}`} onClick={handleClick}>
               Home
             </Link>
           </li> */}
           <li className="nav-item">
-            <Link href="/about" className={`nav-links ${pathname === "/about" ? "active" : ""}`} onClick={handleClick}>
+            <Link
+              href="/about"
+              className={`nav-links ${pathname === '/about' ? 'active' : ''}`}
+              onClick={handleClick}
+            >
               About
             </Link>
           </li>
@@ -36,7 +40,11 @@ function NavBar() {
             </Link>
           </li> */}
           <li className="nav-item">
-            <Link href="/contact" className={`nav-links ${pathname === "/contact" ? "active" : ""}`} onClick={handleClick}>
+            <Link
+              href="/contact"
+              className={`nav-links ${pathname === '/contact' ? 'active' : ''}`}
+              onClick={handleClick}
+            >
               Contact Us
             </Link>
           </li>
