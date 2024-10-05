@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getMeetingById } from '../../../../lib/queries';
+import { getMeetingById } from '@/lib/queries';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {

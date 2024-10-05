@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
-import { createMeeting } from '../../../lib/queries';
+import { createMeeting } from '@/lib/queries';
 
 // Zod schema for meeting creation
 const CreateMeetingSchema = z.object({

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
-import { createUser } from '../../../lib/queries';
+import { createUser } from '@/lib/queries';
 
 // Zod schema for user creation
 const CreateUserSchema = z.object({

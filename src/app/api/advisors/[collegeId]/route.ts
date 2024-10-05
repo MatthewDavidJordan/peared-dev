@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAdvisorsForCollege } from '../../../../lib/queries';
+import { getAdvisorsForCollege } from '@/lib/queries';
 
 // Dynamic route handling
 export async function GET(req: Request, { params }: { params: { collegeId: string } }) {

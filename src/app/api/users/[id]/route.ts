@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUserById } from '../../../../lib/queries';
+import { getUserById } from '@/lib/queries';
 
 // Dynamic route handling
 export async function GET(req: Request, { params }: { params: { id: string } }) {
