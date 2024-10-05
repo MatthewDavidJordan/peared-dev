@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getMeetingById } from '../../../queries';
+import { getMeetingById } from '../../../../lib/queries';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {
-        const meeting = await getMeetingById(params.id);
+        const meeting = await getMeetingById(Number(params.id)); // Cast to number
         return NextResponse.json(meeting, { status: 200 });
     } catch (error) {
         if (error instanceof Error) {

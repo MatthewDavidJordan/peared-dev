@@ -1,96 +1,106 @@
-import { createClient, AuthResponse, User as SupabaseUser } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Database } from './database-types';
 
-const supabase = createClient(
+// Create the typed Supabase client
+const supabase: SupabaseClient<Database> = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_KEY!
 );
 
-// Define types for your data models
-export type College = {
-  id: string;
-  name: string;
-};
+// Type definitions for custom tables
+export type Advisor = Database['public']['Tables']['advisors']['Row'];
+export type Meeting = Database['public']['Tables']['meetings']['Row'];
+export type College = Database['public']['Tables']['schools']['Row'];
+export type Availability = Database['public']['Tables']['availability']['Row'];
 
-export type Advisor = {
-  advisor_id: string;
-  user_id: string;
-  school_id: string;
-  bio: string;
-};
-
-export type User = {
+// Supabase Auth User type
+export type AuthUser = {
   id: string;
   email: string;
 };
 
-export type Meeting = {
-  meeting_id: string;
-  advisor_id: string;
-  student_id: string;
-  start_time: string;
-  end_time: string;
+// Query to create a user (sign-up) using Supabase Auth
+export const createUser = async (email: AuthUser['email'], password: string): Promise<AuthUser | null> => {
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) throw error;
+
+  if (!data?.user || !data.user.email) {
+    throw new Error('User creation failed or email is missing');
+  }
+
+  return { id: data.user.id, email: data.user.email };
 };
 
-// Query to get all colleges
+// Query to get user by ID (from Supabase Auth)
+export const getUserById = async (userId: AuthUser['id']): Promise<AuthUser | null> => {
+  const { data, error } = await supabase.auth.getUser(userId);
+  if (error) throw error;
+
+  if (!data?.user || !data.user.email) {
+    throw new Error('User not found or email is missing');
+  }
+
+  return { id: data.user.id, email: data.user.email };
+};
+
+// Query to get all colleges (schools)
 export const getAllColleges = async (): Promise<College[]> => {
   const { data, error } = await supabase.from('schools').select('*');
   if (error) throw error;
-  return data as College[];
+  return data || [];
 };
 
 // Query to get all advisors for a specific college
-export const getAdvisorsForCollege = async (collegeId: string): Promise<Advisor[]> => {
+export const getAdvisorsForCollege = async (collegeId: College['school_id']): Promise<Advisor[]> => {
   const { data, error } = await supabase.from('advisors').select('*').eq('school_id', collegeId);
   if (error) throw error;
-  return data as Advisor[];
+  return data || [];
 };
 
-// Query to get advisor by ID
-export const getAdvisorById = async (advisorId: string): Promise<Advisor | null> => {
-  const { data, error } = await supabase.from('advisors').select('*').eq('advisor_id', advisorId).single();
+// Query to get advisor by ID using Advisor type
+export const getAdvisorById = async (advisorId: Advisor['advisor_id']): Promise<Advisor | null> => {
+  const { data, error } = await supabase
+    .from('advisors')
+    .select('*')
+    .eq('advisor_id', advisorId)
+    .single();
   if (error) throw error;
-  return data as Advisor | null;  // Handle potential null
+  return data;
 };
 
-// Query to get schedule info for advisor
-export const getScheduleByAdvisorId = async (advisorId: string): Promise<any> => {
-  const { data, error } = await supabase.from('availability').select('*').eq('advisor_id', advisorId).single();
+// Query to get the schedule of an advisor by advisor ID using Availability type
+export const getScheduleByAdvisorId = async (advisorId: Advisor['advisor_id']): Promise<Availability | null> => {
+  const { data, error } = await supabase
+    .from('availability')
+    .select('*')
+    .eq('advisor_id', advisorId)
+    .single();
   if (error) throw error;
-  return data;  // This can be typed further if needed
+  return data;
 };
 
-// Query to create a user (sign-up)
-export const createUser = async (email: string, password: string): Promise<SupabaseUser | null> => {
-  const { data, error }: AuthResponse = await supabase.auth.signUp({ email, password });
-  if (error) throw error;
-  return data.user;  // Access the user from the data object
-};
-
-// Query to get user by ID
-export const getUserById = async (userId: string): Promise<User | null> => {
-  const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
-  if (error) throw error;
-  return data as User | null;  // Handle potential null
-};
-
-// Query to create a meeting
+// Query to create a meeting using Meeting type
 export const createMeeting = async (
-  advisorId: string,
-  studentId: string,
-  startTime: string,
-  endTime: string
+  advisorId: Meeting['advisor_id'],
+  studentId: Meeting['student_id'],
+  startTime: Meeting['start_time'],
+  endTime: Meeting['end_time']
 ): Promise<Meeting | null> => {
   const { data, error } = await supabase
     .from('meetings')
     .insert({ advisor_id: advisorId, student_id: studentId, start_time: startTime, end_time: endTime })
-    .single();  // Expect a single row
+    .single();
   if (error) throw error;
-  return data as Meeting | null;  // Handle potential null
+  return data;
 };
 
-// Query to get meeting by ID
-export const getMeetingById = async (meetingId: string): Promise<Meeting | null> => {
-  const { data, error } = await supabase.from('meetings').select('*').eq('meeting_id', meetingId).single();
+// Query to get meeting by ID using Meeting type
+export const getMeetingById = async (meetingId: Meeting['meeting_id']): Promise<Meeting | null> => {
+  const { data, error } = await supabase
+    .from('meetings')
+    .select('*')
+    .eq('meeting_id', meetingId)
+    .single();
   if (error) throw error;
-  return data as Meeting | null;  // Handle potential null
+  return data;
 };
