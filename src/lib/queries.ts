@@ -1,192 +1,106 @@
-import { Advisor, AdvisorArtsGroup, AdvisorClubSport, AdvisorConcentration, AdvisorEthnicity, AdvisorFraternity, AdvisorLanguage, AdvisorMajor, AdvisorMinor, AdvisorPreProfessionalClub, AdvisorRace, AdvisorRecreationalClub, AdvisorReligion, AdvisorSorority, AdvisorVarsitySport, AdvisorWithRelations, FullAdvisor, School } from "@/models";
-import { getDbClient } from "@/utils/supabase/client";
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Database } from './database-types';
 
-export async function loadSchools(): Promise<School[]> {
-  const supabase_client = await getDbClient();
+// Create the typed Supabase client
+const supabase: SupabaseClient<Database> = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-  const getAllSchoolsQuery = supabase_client
-  .from('schools')
-  .select('*');
+// Type definitions for custom tables
+export type Advisor = Database['public']['Tables']['advisors']['Row'];
+export type Meeting = Database['public']['Tables']['meetings']['Row'];
+export type College = Database['public']['Tables']['schools']['Row'];
+export type Availability = Database['public']['Tables']['availability']['Row'];
 
-  const { data: schools, error } = await getAllSchoolsQuery;
+// Supabase Auth User type
+export type AuthUser = {
+  id: string;
+  email: string;
+};
 
-  if (error) {
-    console.error('Error fetching schools:', error);
-    return [];
+// Query to create a user (sign-up) using Supabase Auth
+export const createUser = async (email: AuthUser['email'], password: string): Promise<AuthUser | null> => {
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) throw error;
+
+  if (!data?.user || !data.user.email) {
+    throw new Error('User creation failed or email is missing');
   }
 
-  return schools ?? [];
-}
+  return { id: data.user.id, email: data.user.email };
+};
 
-// load all advisors for a school
-// export async function loadAdvisorsBySchoolId(school_id: string): Promise<FullAdvisor[]> {
-//   const supabase_client = await getDbClient();
+// Query to get user by ID (from Supabase Auth)
+export const getUserById = async (userId: AuthUser['id']): Promise<AuthUser | null> => {
+  const { data, error } = await supabase.auth.getUser(userId);
+  if (error) throw error;
 
-//   const getAllAdvisorsQuery = supabase_client
-//   .from('advisors')
-//   .select('*')
-//   .eq('school_id', school_id);
+  if (!data?.user || !data.user.email) {
+    throw new Error('User not found or email is missing');
+  }
 
-//   const { data: advisors, error } = await getAllAdvisorsQuery;
+  return { id: data.user.id, email: data.user.email };
+};
 
-//   if (error) {
-//     console.error('Error fetching advisors:', error);
-//     return [];
-//   }
+// Query to get all colleges (schools)
+export const getAllColleges = async (): Promise<College[]> => {
+  const { data, error } = await supabase.from('schools').select('*');
+  if (error) throw error;
+  return data || [];
+};
 
-//   return advisors ?? [];
-// }
+// Query to get all advisors for a specific college
+export const getAdvisorsForCollege = async (collegeId: College['school_id']): Promise<Advisor[]> => {
+  const { data, error } = await supabase.from('advisors').select('*').eq('school_id', collegeId);
+  if (error) throw error;
+  return data || [];
+};
 
-export async function loadAdvisorsBySchoolId(school_id: string): Promise<FullAdvisor[]> {
-  const supabase_client = await getDbClient();
-
-  const getAllAdvisorsQuery = supabase_client
+// Query to get advisor by ID using Advisor type
+export const getAdvisorById = async (advisorId: Advisor['advisor_id']): Promise<Advisor | null> => {
+  const { data, error } = await supabase
     .from('advisors')
-    .select(`
-      *,
-      advisor_majors (
-        majors (*)
-      ),
-      advisor_minors (
-        minors (*)
-      ),
-      advisor_concentrations (
-        concentrations (*)
-      ),
-      advisor_varsity_sports (
-        varsity_sports (*)
-      ),
-      advisor_club_sports (
-        club_sports (*)
-      ),
-      advisor_pre_professional_clubs (
-        pre_professional_clubs (*)
-      ),
-      advisor_recreational_clubs (
-        recreational_clubs (*)
-      ),
-      advisor_fraternities (
-        fraternities (*)
-      ),
-      advisor_sororities (
-        sororities (*)
-      ),
-      advisor_arts_groups (
-        arts_groups (*)
-      ),
-      advisor_races (
-        races (*)
-      ),
-      advisor_ethnicities (
-        ethnicities (*)
-      ),
-      advisor_religions (
-        religions (*)
-      ),
-      advisor_languages (
-        languages (*)
-      )
-    `)
-    .eq('school_id', school_id);
+    .select('*')
+    .eq('advisor_id', advisorId)
+    .single();
+  if (error) throw error;
+  return data;
+};
 
-  const { data: advisors, error } = await getAllAdvisorsQuery;
+// Query to get the schedule of an advisor by advisor ID using Availability type
+export const getScheduleByAdvisorId = async (advisorId: Advisor['advisor_id']): Promise<Availability | null> => {
+  const { data, error } = await supabase
+    .from('availability')
+    .select('*')
+    .eq('advisor_id', advisorId)
+    .single();
+  if (error) throw error;
+  return data;
+};
 
-  if (error) {
-    console.error('Error fetching advisors:', error);
-    return [];
-  }
+// Query to create a meeting using Meeting type
+export const createMeeting = async (
+  advisorId: Meeting['advisor_id'],
+  studentId: Meeting['student_id'],
+  startTime: Meeting['start_time'],
+  endTime: Meeting['end_time']
+): Promise<Meeting | null> => {
+  const { data, error } = await supabase
+    .from('meetings')
+    .insert({ advisor_id: advisorId, student_id: studentId, start_time: startTime, end_time: endTime })
+    .single();
+  if (error) throw error;
+  return data;
+};
 
-  const fullAdvisors: FullAdvisor[] = (advisors as AdvisorWithRelations[])?.map(advisor => ({
-    ...advisor,
-    majors: advisor.advisor_majors?.map((am: AdvisorMajor) => am.majors) || null,
-    minors: advisor.advisor_minors?.map((am: AdvisorMinor) => am.minors) || null,
-    concentrations: advisor.advisor_concentrations?.map((ac: AdvisorConcentration) => ac.concentrations) || null,
-    varsity_sports: advisor.advisor_varsity_sports?.map((avs: AdvisorVarsitySport) => avs.varsity_sports) || null,
-    club_sports: advisor.advisor_club_sports?.map((acs: AdvisorClubSport) => acs.club_sports) || null,
-    pre_professional_clubs: advisor.advisor_pre_professional_clubs?.map((appc: AdvisorPreProfessionalClub) => appc.pre_professional_clubs) || null,
-    recreational_clubs: advisor.advisor_recreational_clubs?.map((arc: AdvisorRecreationalClub) => arc.recreational_clubs) || null,
-    fraternities: advisor.advisor_fraternities?.map((af: AdvisorFraternity) => af.fraternities) || null,
-    sororities: advisor.advisor_sororities?.map((as: AdvisorSorority) => as.sororities) || null,
-    arts_groups: advisor.advisor_arts_groups?.map((aag: AdvisorArtsGroup) => aag.arts_groups) || null,
-    races: advisor.advisor_races?.map((ar: AdvisorRace) => ar.races) || null,
-    ethnicities: advisor.advisor_ethnicities?.map((ae: AdvisorEthnicity) => ae.ethnicities) || null,
-    religions: advisor.advisor_religions?.map((ar: AdvisorReligion) => ar.religions) || null,
-    languages: advisor.advisor_languages?.map((al: AdvisorLanguage) => al.languages) || null,
-  })) || [];
-
-  return fullAdvisors;
-}
-
-export async function getCalendlyUrlFromAdvisorId(advisor_id: string) {
-  const supabase_client = await getDbClient();
-
-  const getAdvisorQuery = supabase_client
-  .from('advisors')
-  .select('calendly_url')
-  .eq('id', advisor_id);
-
-  const { data: advisor, error } = await getAdvisorQuery;
-
-  if (error) {
-    console.error('Error fetching advisor:', error);
-    return '';
-  }
-
-  return advisor[0].calendly_url;
-}
-
-// export async function loadCat(id: string) {
-//   const query = "SELECT * FROM cats WHERE id = $1 LIMIT 1";
-//   const client = await getDbClient();
-//   const result = await client.query<Cat>(query, [id]);
-
-//   const cat = result.rows[0];
-
-//   if (!cat) {
-//     throw Error("Here kitty kitty! Cannot find cat " + id);
-//   }
-
-//   return cat;
-// }
-
-// export async function insertCat(cat: Omit<Cat, "id">) {
-//   const query =
-//     "INSERT INTO cats(id, name, color) VALUES($1, $2, $3) RETURNING *";
-//   const client = await getDbClient();
-//   const result = await client.query<Cat>(query, [
-//     randomUUID(),
-//     cat.name,
-//     cat.color,
-//   ]);
-
-//   return result.rows[0];
-// }
-
-// export async function updateCat(cat: Cat) {
-//   const query =
-//     "UPDATE cats SET name = $1, color = $2, tags = $3 WHERE id = $4 RETURNING *";
-//   const client = await getDbClient();
-//   const result = await client.query<Cat>(query, [
-//     cat.name,
-//     cat.color,
-//     cat.tags,
-//     cat.id,
-//   ]);
-
-//   return result.rows[0];
-// }
-
-// export async function deleteCat(id: string) {
-//   const query = "DELETE FROM cats WHERE id = $1 RETURNING *";
-//   const client = await getDbClient();
-//   const result = await client.query<Cat>(query, [id]);
-
-//   return result.rows[0];
-// }
-
-// export async function loadDogs() {
-//   const client = await getDbClient();
-//   const result = await client.query<Dog>("SELECT * FROM dogs ORDER BY name");
-
-//   return result.rows;
-// }
+// Query to get meeting by ID using Meeting type
+export const getMeetingById = async (meetingId: Meeting['meeting_id']): Promise<Meeting | null> => {
+  const { data, error } = await supabase
+    .from('meetings')
+    .select('*')
+    .eq('meeting_id', meetingId)
+    .single();
+  if (error) throw error;
+  return data;
+};
