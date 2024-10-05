@@ -4,7 +4,7 @@ import { Database } from './database-types';
 // Create the typed Supabase client
 const supabase: SupabaseClient<Database> = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 // Type definitions for custom tables
