@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -69,7 +69,7 @@ function SchoolSection() {
 function SchoolCard() {
   return (
     <Link href="/school">
-      <Card className="border-none bg-primary text-primary-foreground">
+      <Card className="border-none text-primary-foreground">
         <Image
           src="https://thomasforbes.com/wine.png"
           alt="school photo"
@@ -77,9 +77,12 @@ function SchoolCard() {
           height={200}
           className="aspect-[3/2] w-full object-cover"
         />
-        <CardHeader className="p-4">
-          <CardTitle>Georgetown</CardTitle>
-          <CardDescription className="text-muted">Washington DC</CardDescription>
+        <CardHeader className="flex-row p-4">
+          <img
+            src="https://admissionscheckup.com/wp-content/uploads/2023/09/Georgetown-University-Logo.png"
+            className="w-full"
+          />
+          {/* <CardTitle>Georgetown</CardTitle> */}
         </CardHeader>
         {/* <CardContent className="p-4 pt-0">
           <p>Card Content</p>
