@@ -1,3 +1,4 @@
+// users route
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import { createUser } from '@/lib/queries';
@@ -15,7 +16,10 @@ export async function POST(req: Request) {
     // Validate using Zod
     const validatedData = CreateUserSchema.safeParse(body);
     if (!validatedData.success) {
-      return NextResponse.json({ error: 'Invalid input', details: validatedData.error.format() }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid input', details: validatedData.error.format() },
+        { status: 400 },
+      );
     }
 
     const { email, password } = validatedData.data;

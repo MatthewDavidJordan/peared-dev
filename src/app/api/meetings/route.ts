@@ -1,3 +1,4 @@
+//meeting route
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import { createMeeting } from '@/lib/queries';
@@ -17,7 +18,10 @@ export async function POST(req: Request) {
     // Validate using Zod
     const validatedData = CreateMeetingSchema.safeParse(body);
     if (!validatedData.success) {
-      return NextResponse.json({ error: 'Invalid input', details: validatedData.error.format() }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid input', details: validatedData.error.format() },
+        { status: 400 },
+      );
     }
 
     const { advisor_id, student_id, start_time, end_time } = validatedData.data;

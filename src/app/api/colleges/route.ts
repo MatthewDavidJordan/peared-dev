@@ -1,3 +1,4 @@
+//college route
 import { NextResponse } from 'next/server';
 import { getAllColleges } from '@/lib/queries';
 
@@ -12,5 +13,3 @@ export async function GET() {
     return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
   }
 }
-
-

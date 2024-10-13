@@ -1,3 +1,4 @@
+// user [id] route
 import { NextResponse } from 'next/server';
 import { getUserById } from '@/lib/queries';
 
@@ -13,4 +14,3 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
   }
 }
-

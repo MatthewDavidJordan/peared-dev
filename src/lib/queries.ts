@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { Database } from './database-types';
+import { Database } from './supabase-types';
 
 // Create the typed Supabase client
 const supabase: SupabaseClient<Database> = createClient<Database>(
@@ -53,20 +53,25 @@ export const getAllColleges = async (): Promise<College[]> => {
   return data || [];
 };
 
-// Query to get all advisors for a specific college
 export const getAdvisorsForCollege = async (
   collegeId: College['school_id'],
 ): Promise<Advisor[]> => {
-  const { data, error } = await supabase.from('advisors').select('*').eq('school_id', collegeId);
+  const { data, error } = await supabase
+    .from('advisors')
+    .select(
+      'advisor_id, user_id, school_id, availability_id, payment_info_id, bio, advisor_name, advisor_image',
+    )
+    .eq('school_id', collegeId);
   if (error) throw error;
   return data || [];
 };
 
-// Query to get advisor by ID using Advisor type
 export const getAdvisorById = async (advisorId: Advisor['advisor_id']): Promise<Advisor | null> => {
   const { data, error } = await supabase
     .from('advisors')
-    .select('*')
+    .select(
+      'advisor_id, user_id, school_id, availability_id, payment_info_id, bio, advisor_name, advisor_image',
+    )
     .eq('advisor_id', advisorId)
     .single();
   if (error) throw error;
