@@ -1,11 +1,9 @@
-//advisors/[id]/schedule route
 import { NextResponse } from 'next/server';
-import { getScheduleByAdvisorId } from '@/lib/queries';
+import { Availability, getScheduleByAdvisorId } from '@/lib/queries';
 
-// Dynamic route handling
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    const schedule = await getScheduleByAdvisorId(Number(params.id)); // Cast to number
+    const schedule: Availability | null = await getScheduleByAdvisorId(Number(params.id));
     return NextResponse.json(schedule, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {

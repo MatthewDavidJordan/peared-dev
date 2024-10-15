@@ -1,11 +1,9 @@
-// user [id] route
 import { NextResponse } from 'next/server';
-import { getUserById } from '@/lib/queries';
+import { AuthUser, getUserById } from '@/lib/queries';
 
-// Dynamic route handling
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    const user = await getUserById(params.id);
+    const user: AuthUser | null = await getUserById(params.id);
     return NextResponse.json(user, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {

@@ -1,19 +1,16 @@
-// users route
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
-import { createUser } from '@/lib/queries';
+import { AuthUser, createUser } from '@/lib/queries';
 
-// Zod schema for user creation
 const CreateUserSchema = z.object({
-  email: z.string().email(), // Ensures email is a valid string and matches email format
-  password: z.string().min(6), // Ensures password is a string and at least 6 characters long
+  email: z.string().email(),
+  password: z.string().min(6),
 });
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Validate using Zod
     const validatedData = CreateUserSchema.safeParse(body);
     if (!validatedData.success) {
       return NextResponse.json(
@@ -24,7 +21,8 @@ export async function POST(req: Request) {
 
     const { email, password } = validatedData.data;
 
-    const user = await createUser(email, password);
+    const user: AuthUser | null = await createUser(email, password);
+
     return NextResponse.json(user, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {
