@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
-import { AuthUser, createUser } from '@/lib/queries';
+import { signInWithOtp } from '@/lib/queries';
+
 
 const CreateUserSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
 });
 
 export async function POST(req: Request) {
@@ -19,11 +19,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const { email, password } = validatedData.data;
+    const { email } = validatedData.data;
 
-    const user: AuthUser | null = await createUser(email, password);
+    const { error } = await signInWithOtp(email);
 
-    return NextResponse.json(user, { status: 200 });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: 'Magic link sent to email' }, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

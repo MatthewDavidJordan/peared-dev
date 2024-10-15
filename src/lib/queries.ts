@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { AuthOtpResponse, createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Database } from './supabase-types';
 
 // Create the typed Supabase client
@@ -19,20 +19,9 @@ export type AuthUser = {
   email: string;
 };
 
-// Query to create a user (sign-up) using Supabase Auth
-export const createUser = async (
-  email: AuthUser['email'],
-  password: string,
-): Promise<AuthUser | null> => {
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) throw error;
-
-  if (!data?.user || !data.user.email) {
-    throw new Error('User creation failed or email is missing');
-  }
-
-  return { id: data.user.id, email: data.user.email };
-};
+// OTP sign in
+export const signInWithOtp = async (email: string): Promise<AuthOtpResponse> =>
+  supabase.auth.signInWithOtp({ email });
 
 // Query to get user by ID (from Supabase Auth)
 export const getUserById = async (userId: AuthUser['id']): Promise<AuthUser | null> => {
