@@ -3,7 +3,7 @@ import React from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'College Compass',
+  title: 'PearEd',
   description: 'Find your perfect college (student) advisor.',
   icons: {
     icon: '/favicon.ico',
