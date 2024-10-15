@@ -2,12 +2,13 @@
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/funcs';
+import { cn, onSameDay } from '@/lib/funcs';
+import { College, type Advisor } from '@/lib/queries';
 import type { Setter } from '@/lib/types';
-import { Clock, Globe, Info, LoaderCircle } from 'lucide-react';
+import { Clock, Globe, Info, LoaderCircle, Undo2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 function isEmailValid(email: string) {
   return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g.test(email);
@@ -41,7 +42,18 @@ export default function CalendarPage() {
         // TODO: transition dimensions
         className={cn('flex items-stretch divide-x rounded-md border shadow-lg')}
       >
-        <Advisor />
+        <AdvisorPreview
+          advisor={{
+            advisor_id: 0,
+            advisor_image: '/leo.png',
+            advisor_name: 'Leo',
+            availability_id: null,
+            bio: 'Georgetown SFS student with a strong passion for public service, technology, and where they intersect. Background in software development, technical recruiting, consulting, and emergency response.',
+            payment_info_id: null,
+            school_id: 1,
+            user_id: '',
+          }}
+        />
         {!selectedTime ? (
           <TimeForm selectedTime={selectedTime} setSelectedTime={setSelectedTime} />
         ) : (
@@ -97,23 +109,42 @@ export default function CalendarPage() {
   );
 }
 
-function Advisor() {
+function AdvisorPreview({ advisor }: { advisor: Advisor }) {
+  const [college, setCollege] = useState<College | null>(null);
+
+  // TODD: use react query / get this data in the advisor query
+  const getCollege = useCallback(async () => {
+    if (!advisor.school_id) return;
+    const res = await fetch(`/api/colleges/${advisor.school_id}`);
+    const data = await res.json();
+    console.log(data);
+
+    setCollege(data);
+  }, [advisor.school_id]);
+
+  useEffect(() => {
+    getCollege();
+  }, [getCollege]);
   return (
     <div>
-      <div className="flex flex-col gap-2 px-5 py-4">
+      <div className="flex max-w-64 flex-col gap-2 px-5 py-4">
         <Image
-          src="https://thomasforbes.com/wine.png"
-          className="size-10 rounded-full"
+          // TODO: placeholder image
+          src={advisor.advisor_image ?? ''}
+          className="size-20 rounded-md"
           width={80}
           height={80}
           alt="advisor photo"
         />
-        <h2 className="font-bold">Leo Ledlow</h2>
-        <p className="max-w-40 text-xs font-light text-zinc-600">
-          Georgetown SFS student with a strong passion for public service, technology, and where
-          they intersect. Background in software development, technical recruiting, consulting, and
-          emergency response.{' '}
-        </p>
+        <h2 className="text-2xl font-bold">{advisor.advisor_name}</h2>
+        <Link
+          href={`/school/${college?.school_id}`}
+          className="flex items-center gap-1 font-extrabold text-blue-900 underline"
+        >
+          <Undo2 className="size-4 [&_*]:stroke-[3]" />
+          {college?.school_name}
+        </Link>
+        <p className="text-xs font-light text-zinc-600">{advisor.bio}</p>
         <div className="flex-1" />
         <p className="flex items-center gap-1 text-sm">
           <Clock className="size-4" />
@@ -145,19 +176,34 @@ function TimeForm({
   selectedTime: Date | null;
   setSelectedTime: Setter<Date | null>;
 }) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const dates = [new Date(1728068027), new Date(1728018257)];
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const dates = useMemo(() => [new Date(1728068027000), new Date(1729129857000)], []);
+  useEffect(() => {
+    if (!selectedDate) setSelectedDate(dates[0]);
+  }, [dates, selectedDate]);
+
+  const isDateDisabled = useCallback(
+    (date: Date) => {
+      return !dates.some((d) => onSameDay(d, date));
+    },
+    [dates],
+  );
+  const selectedDayTimes = useMemo(() => {
+    if (!selectedDate) return [];
+    return dates.filter((d) => onSameDay(d, selectedDate));
+  }, [dates, selectedDate]);
   return (
     <>
       <Calendar
         mode="single"
         selected={selectedDate}
         onSelect={setSelectedDate}
-        onMonthChange={setSelectedDate}
+        disabled={isDateDisabled}
+        today={undefined}
       />
       <div>
         <div className="flex h-full flex-col gap-2 p-4">
-          {dates.map((date, i) => (
+          {selectedDayTimes.map((date, i) => (
             <TimeSlot key={i} date={date} onClick={() => setSelectedTime(date)} />
           ))}
         </div>
