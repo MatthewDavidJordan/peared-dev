@@ -1,12 +1,15 @@
 'use client';
+import type { CreateMeetingRequest } from '@/app/api/meetings/route';
+import type { CreateUserRequest } from '@/app/api/users/route';
 import NavBar from '@/components/NavBar';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { FALLBACK_IMAGE } from '@/lib/consts';
 import { cn, onSameDay } from '@/lib/funcs';
-import { type getAdvisorById } from '@/lib/queries';
+import { type getAdvisorById, type Meeting } from '@/lib/queries';
 import type { Setter } from '@/lib/types';
+import type { AuthOtpResponse } from '@supabase/supabase-js';
 import { Clock, Globe, Info, LoaderCircle, Undo2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -64,6 +67,34 @@ export default function CalendarPage() {
   );
 }
 
+async function createUser(email: string) {
+  const res = await fetch('/api/users', {
+    method: 'POST',
+    body: JSON.stringify({ email } satisfies CreateUserRequest),
+  });
+  const data: AuthOtpResponse = await res.json();
+  return data;
+}
+
+async function createMeeting(
+  advisor_id: number,
+  student_id: number,
+  start_time: string,
+  end_time: string,
+) {
+  const res = await fetch('/api/meetings', {
+    method: 'POST',
+    body: JSON.stringify({
+      advisor_id,
+      student_id,
+      start_time,
+      end_time,
+    } satisfies CreateMeetingRequest),
+  });
+  const data: Meeting = await res.json();
+  return data;
+}
+
 function SignUpForm({
   selectedTime,
   setSelectedTime,
@@ -77,13 +108,16 @@ function SignUpForm({
 
   const canConfirm = selectedTime && isEmailValid(email);
   const [showRequiredFieldErrors, setShowRequiredFieldErrors] = useState(false);
+
   const confirm = useCallback(async () => {
     if (!canConfirm) return setShowRequiredFieldErrors(true);
 
     try {
       setIsLoading(true);
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // const user = await createUser(email);
+      // // TODO: figure out opt flow
+      // const meeting = await createMeeting(1, 1, selectedTime.toISOString(), '');
 
       router.push(`/meeting/${1}`);
     } catch {

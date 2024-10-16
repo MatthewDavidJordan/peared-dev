@@ -1,11 +1,13 @@
 //users/routes.ts
-import { z } from 'zod';
-import { NextResponse } from 'next/server';
 import { signInWithOtp } from '@/lib/queries';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
 const CreateUserSchema = z.object({
   email: z.string().email(),
 });
+
+export type CreateUserRequest = z.infer<typeof CreateUserSchema>;
 
 export async function POST(req: Request) {
   try {
