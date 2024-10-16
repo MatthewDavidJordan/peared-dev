@@ -1,13 +1,17 @@
 'use client';
+import NavBar from '@/components/NavBar';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
+import { FALLBACK_IMAGE } from '@/lib/consts';
 import { cn, onSameDay } from '@/lib/funcs';
-import { College, type Advisor } from '@/lib/queries';
+import { type getAdvisorById } from '@/lib/queries';
 import type { Setter } from '@/lib/types';
 import { Clock, Globe, Info, LoaderCircle, Undo2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { parseAsIsoDateTime, useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 function isEmailValid(email: string) {
@@ -24,114 +28,119 @@ function RequiredFieldError() {
 }
 
 export default function CalendarPage() {
-  const [selectedTime, setSelectedTime] = useState<Date | null>(null);
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-
-  const canConfirm = selectedTime && isEmailValid(email);
-  const [showRequiredFieldErrors, setShowRequiredFieldErrors] = useState(false);
-  const confirm = useCallback(() => {
-    if (!canConfirm) return setShowRequiredFieldErrors(true);
-  }, [canConfirm]);
-
-  const [isLoading, setIsLoading] = useState(false);
-
+  const [selectedTime, setSelectedTime] = useQueryState('time', parseAsIsoDateTime);
   return (
-    <div className="flex h-full min-h-screen w-full flex-1 flex-col items-center justify-center">
-      <div
-        // TODO: transition dimensions
-        className={cn('flex items-stretch divide-x rounded-md border shadow-lg')}
-      >
-        <AdvisorPreview
-          advisor={{
-            ical_link: '',
-            advisor_id: 0,
-            advisor_image: '/leo.png',
-            advisor_name: 'Leo',
-            availability_id: null,
-            bio: 'Georgetown SFS student with a strong passion for public service, technology, and where they intersect. Background in software development, technical recruiting, consulting, and emergency response.',
-            payment_info_id: null,
-            school_id: 1,
-            user_id: '',
-          }}
-        />
-        {!selectedTime ? (
-          <TimeForm selectedTime={selectedTime} setSelectedTime={setSelectedTime} />
-        ) : (
-          <div>
-            <div className="flex h-full min-w-64 flex-col gap-4 px-5 py-4">
-              <Labelled label="Email *">
-                <Input
-                  placeholder="example@example.com"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                {!!showRequiredFieldErrors && <RequiredFieldError />}
-              </Labelled>
-              <Labelled label="Name">
-                <Input
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </Labelled>
-              <div className="flex-1" />
-              <p className="text-xs font-light text-zinc-500">
-                By proceeding you agree to our{' '}
-                <Link href="/tos" className="underline">
-                  Terms
-                </Link>{' '}
-                and{' '}
-                <Link href="/privacy-policy" className="underline">
-                  Privacy Policy
-                </Link>
-              </p>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setSelectedTime(null)}
-                  disabled={isLoading}
-                >
-                  Back
-                </Button>
-                <Button onClick={confirm} className="relative" disabled={isLoading}>
-                  <span className={cn(isLoading && 'invisible')}>Confirm</span>
-                  {isLoading && (
-                    <LoaderCircle className="absolute left-auto right-auto size-4 animate-spin" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+    <div className="flex min-h-screen flex-col">
+      <NavBar />
+      <div className="flex w-full flex-1 flex-col items-center justify-center [&>*>*]:w-72">
+        <div
+          // TODO: transition dimensions
+          className={cn('flex items-stretch divide-x rounded-md border shadow-lg')}
+        >
+          <AdvisorPreview
+            advisor={{
+              ical_link: '',
+              advisor_id: 0,
+              advisor_image: '/leo.png',
+              advisor_name: 'Leo',
+              availability_id: null,
+              bio: 'Georgetown SFS student with a strong passion for public service, technology, and where they intersect. Background in software development, technical recruiting, consulting, and emergency response.',
+              payment_info_id: null,
+              school_id: 1,
+              user_id: '',
+              school_name: 'Georgetown University',
+              school_image: '/georgetown.png',
+              advisor_labels: [],
+            }}
+          />
+          {!selectedTime ? (
+            <TimeForm selectedTime={selectedTime} setSelectedTime={setSelectedTime} />
+          ) : (
+            <SignUpForm selectedTime={selectedTime} setSelectedTime={setSelectedTime} />
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-function AdvisorPreview({ advisor }: { advisor: Advisor }) {
-  const [college, setCollege] = useState<College | null>(null);
+function SignUpForm({
+  selectedTime,
+  setSelectedTime,
+}: {
+  selectedTime: Date | null;
+  setSelectedTime: Setter<Date | null>;
+}) {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
 
-  // TODD: use react query / get this data in the advisor query
-  const getCollege = useCallback(async () => {
-    if (!advisor.school_id) return;
-    const res = await fetch(`/api/colleges/${advisor.school_id}`);
-    const data = await res.json();
-    console.log(data);
+  const canConfirm = selectedTime && isEmailValid(email);
+  const [showRequiredFieldErrors, setShowRequiredFieldErrors] = useState(false);
+  const confirm = useCallback(async () => {
+    if (!canConfirm) return setShowRequiredFieldErrors(true);
 
-    setCollege(data);
-  }, [advisor.school_id]);
+    try {
+      setIsLoading(true);
 
-  useEffect(() => {
-    getCollege();
-  }, [getCollege]);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      router.push(`/meeting/${1}`);
+    } catch {
+      setIsLoading(false);
+    }
+  }, [canConfirm, router]);
+
+  const [isLoading, setIsLoading] = useState(false);
+
   return (
     <div>
-      <div className="flex max-w-64 flex-col gap-2 px-5 py-4">
+      <div className="flex h-full min-w-64 flex-col gap-4 px-5 py-4">
+        <Labelled label="Email *">
+          <Input
+            placeholder="example@example.com"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          {!!showRequiredFieldErrors && <RequiredFieldError />}
+        </Labelled>
+        <Labelled label="Name">
+          <Input placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} />
+        </Labelled>
+        <div className="flex-1" />
+        <p className="text-xs font-light text-zinc-500">
+          By proceeding you agree to our{' '}
+          <Link href="/tos" className="underline">
+            Terms
+          </Link>{' '}
+          and{' '}
+          <Link href="/privacy-policy" className="underline">
+            Privacy Policy
+          </Link>
+        </p>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setSelectedTime(null)} disabled={isLoading}>
+            Back
+          </Button>
+          <Button onClick={confirm} className="relative" disabled={isLoading}>
+            <span className={cn(isLoading && 'invisible')}>Confirm</span>
+            {isLoading && (
+              <LoaderCircle className="absolute left-auto right-auto size-4 animate-spin" />
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdvisorPreview({ advisor }: { advisor: Awaited<ReturnType<typeof getAdvisorById>> }) {
+  return (
+    <div>
+      <div className="flex h-full flex-col gap-2 px-5 py-4">
         <Image
-          // TODO: placeholder image
-          src={advisor.advisor_image ?? ''}
+          src={advisor.advisor_image ?? FALLBACK_IMAGE}
           className="size-20 rounded-md"
           width={80}
           height={80}
@@ -139,16 +148,18 @@ function AdvisorPreview({ advisor }: { advisor: Advisor }) {
         />
         <h2 className="text-2xl font-bold">{advisor.advisor_name}</h2>
         <Link
-          href={`/school/${college?.school_id}`}
+          href={`/school/${advisor.school_id}`}
           className="flex items-center gap-1 font-extrabold text-blue-900 underline"
         >
           <Undo2 className="size-4 [&_*]:stroke-[3]" />
-          {college?.school_name}
+          {advisor.school_name}
         </Link>
-        <p className="text-xs font-light text-zinc-600">{advisor.bio}</p>
+        <p className="text-sm font-light text-zinc-600">{advisor.bio}</p>
+        {/* TODO: labels */}
         <div className="flex-1" />
         <p className="flex items-center gap-1 text-sm">
           <Clock className="size-4" />
+          {/* TODO: */}
           <span>15 min</span>
         </p>
         <p className="flex items-center gap-1 text-sm">
@@ -193,9 +204,11 @@ function TimeForm({
     if (!selectedDate) return [];
     return dates.filter((d) => onSameDay(d, selectedDate));
   }, [dates, selectedDate]);
+
   return (
     <>
       <Calendar
+        className="!w-auto"
         mode="single"
         selected={selectedDate}
         onSelect={setSelectedDate}
@@ -204,6 +217,12 @@ function TimeForm({
       />
       <div>
         <div className="flex h-full flex-col gap-2 p-4">
+          <p className="inline-flex items-end gap-1.5">
+            <b>{new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(selectedDate)}</b>
+            <span className="rounded bg-secondary px-1 font-mono text-secondary-foreground">
+              {new Intl.DateTimeFormat('en-US', { day: '2-digit' }).format(selectedDate)}
+            </span>
+          </p>
           {selectedDayTimes.map((date, i) => (
             <TimeSlot key={i} date={date} onClick={() => setSelectedTime(date)} />
           ))}

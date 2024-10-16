@@ -1,6 +1,7 @@
 import NavBar from '@/components/NavBar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardTitle } from '@/components/ui/card';
+import { FALLBACK_IMAGE } from '@/lib/consts';
 import { getAdvisorsForCollege, type Advisor } from '@/lib/queries';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -31,8 +32,7 @@ function AdvisorCard({ advisor }: { advisor: Advisor }) {
   return (
     <Card className="flex flex-col overflow-hidden">
       <Image
-        // TODO: placeholder image
-        src={advisor.advisor_image ?? '/leo.png'}
+        src={advisor.advisor_image ?? FALLBACK_IMAGE}
         alt={advisor.advisor_name}
         width={400}
         height={400}
@@ -51,7 +51,7 @@ function AdvisorCard({ advisor }: { advisor: Advisor }) {
         </div>
       </CardContent>
       <CardFooter>
-        <Button variant="primary" className="w-full">
+        <Button variant="primaryToAccent" className="w-full">
           <Link href={`/book/${advisor.advisor_id}`}>
             Book a Call with {advisor.advisor_name.split(' ')[0]}
           </Link>

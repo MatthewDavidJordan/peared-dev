@@ -85,10 +85,8 @@ export const getAdvisorsForCollege = async (
   return data || [];
 };
 
-export const getAdvisorById = async (
-  advisorId: Advisor['advisor_id'],
-): Promise<AdvisorWithLabels | null> => {
-  const { data, error } = await supabase
+export const getAdvisorById = async (advisorId: Advisor['advisor_id']) => {
+  const { data: advisorData, error: advisorError } = await supabase
     .from('advisors')
     .select(
       `
@@ -112,9 +110,16 @@ export const getAdvisorById = async (
     )
     .eq('advisor_id', advisorId)
     .single();
+  if (advisorError) throw advisorError;
 
-  if (error) throw error;
-  return data;
+  const { data: schoolData, error: schoolError } = await supabase
+    .from('schools')
+    .select('*')
+    .eq('school_id', advisorData.school_id)
+    .single();
+  if (schoolError) throw schoolError;
+
+  return { ...advisorData, ...schoolData };
 };
 
 // Query to get the schedule of an advisor by advisor ID using Availability type
