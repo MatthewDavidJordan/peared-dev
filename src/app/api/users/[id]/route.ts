@@ -1,3 +1,4 @@
+//users/[id]/route.ts
 import { NextResponse } from 'next/server';
 import { AuthUser, getUserById } from '@/lib/queries';
 

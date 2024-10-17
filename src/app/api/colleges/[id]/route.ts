@@ -1,3 +1,4 @@
+//college/[id]/route.ts
 import { getCollegeById } from '@/lib/queries';
 import { NextResponse } from 'next/server';
 

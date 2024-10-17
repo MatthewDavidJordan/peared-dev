@@ -1,7 +1,7 @@
+//users/routes.ts
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import { signInWithOtp } from '@/lib/queries';
-
 
 const CreateUserSchema = z.object({
   email: z.string().email(),

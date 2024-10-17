@@ -1,3 +1,4 @@
+//src/lib/queries.ts
 import { AuthOtpResponse, createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Database } from './supabase-types';
 

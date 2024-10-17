@@ -1,3 +1,4 @@
+//college/route.ts
 import { NextResponse } from 'next/server';
 import { College, getAllColleges } from '@/lib/queries';
 
