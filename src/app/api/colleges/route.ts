@@ -1,10 +1,10 @@
 //college/route.ts
 import { NextResponse } from 'next/server';
-import { College, getAllColleges } from '@/lib/queries';
+import { getAllColleges } from '@/lib/queries';
 
 export async function GET() {
   try {
-    const colleges: College[] = await getAllColleges();
+    const colleges = await getAllColleges();
     return NextResponse.json(colleges, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {

@@ -351,14 +351,17 @@ export type Database = {
       schools: {
         Row: {
           school_id: number
+          school_image: string | null
           school_name: string
         }
         Insert: {
           school_id?: number
+          school_image?: string | null
           school_name: string
         }
         Update: {
           school_id?: number
+          school_image?: string | null
           school_name?: string
         }
         Relationships: []
