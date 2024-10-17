@@ -16,7 +16,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: 'iCal link is required' }, { status: 400 });
     }
 
-    // 1. Update the iCal link in the database
+    // Update the iCal link in the availability table
     const { data, error } = await supabase
       .from('availability')
       .update({ ical_link })
@@ -27,41 +27,55 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // 2. If iCal link is valid, fetch and parse the iCal data
-    if (ical_link) {
-      const events = await ical.async.fromURL(ical_link);
-      const now = new Date();
-      const twoWeeksAgo = new Date(now);
-      twoWeeksAgo.setDate(now.getDate() - 14);
+    // If no row was updated, insert a new one
+    if (!data || data.length === 0) {
+      const { data: insertData, error: insertError } = await supabase.from('availability').insert({
+        advisor_id: Number(params.id),
+        ical_link,
+      });
 
-      const eventArray = Object.values(events)
-        .filter((event: any) => event.start >= twoWeeksAgo && event.start <= now)
-        .map((event: any) => ({
-          start_time: event.start,
-          end_time: event.end,
-        }));
-
-      // 3. Update the parsed events into the availability table (e.g., conflicts field)
-      const { error: updateError } = await supabase
-        .from('availability')
-        .update({
-          conflicts: eventArray, // Store the events in 'conflicts' field (or another field if needed)
-        })
-        .eq('advisor_id', Number(params.id));
-
-      if (updateError) {
-        return NextResponse.json({ error: updateError.message }, { status: 500 });
+      if (insertError) {
+        return NextResponse.json({ error: insertError.message }, { status: 500 });
       }
-
-      // 4. Respond with success
-      return NextResponse.json(
-        { success: 'iCal link and availability updated with events', data: eventArray },
-        { status: 200 },
-      );
     }
 
-    return NextResponse.json({ success: 'iCal link updated' }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
+    // Fetch and parse the iCal data
+    const events = await ical.async.fromURL(ical_link);
+    const now = new Date();
+    const twoWeeksAgo = new Date(now);
+    twoWeeksAgo.setDate(now.getDate() - 14);
+
+    const eventArray = Object.values(events)
+      .filter(
+        (event: any) =>
+          event.start && event.end && event.start instanceof Date && event.end instanceof Date,
+      )
+      .filter((event: any) => event.start >= twoWeeksAgo && event.start <= now)
+      .map((event: any) => ({
+        start_time: event.start,
+        end_time: event.end,
+      }));
+
+    // Update the parsed events in the 'conflicts' field
+    const { error: updateError } = await supabase
+      .from('availability')
+      .update({
+        conflicts: eventArray,
+      })
+      .eq('advisor_id', Number(params.id));
+
+    if (updateError) {
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    return NextResponse.json(
+      { success: 'iCal link and availability updated with events', data: eventArray },
+      { status: 200 },
+    );
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: 'Something went wrong', details: error.message },
+      { status: 500 },
+    );
   }
 }
