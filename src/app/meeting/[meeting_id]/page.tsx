@@ -1,11 +1,20 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { FALLBACK_IMAGE } from '@/lib/consts';
+import { FALLBACK_IMAGE, SUPPORT_MAILTO } from '@/lib/consts';
 import { getAdvisorById, getMeetingById } from '@/lib/queries';
 import { ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+
+function generateWhenString(start_time: string, end_time: string) {
+  const dateString = new Date(start_time).toLocaleDateString();
+
+  const startTimeString = new Date(start_time).toLocaleTimeString();
+  const endTimeString = new Date(end_time).toLocaleTimeString();
+
+  return `${dateString} ${startTimeString} - ${endTimeString}`;
+}
 
 export default async function MeetingPage({
   params: { meeting_id },
@@ -45,7 +54,7 @@ export default async function MeetingPage({
           <div className="grid grid-cols-3 gap-y-2">
             {[
               { left: 'Who', right: advisor.advisor_name },
-              { left: 'When', right: new Date(meeting.start_time).toLocaleString() },
+              { left: 'When', right: generateWhenString(meeting.start_time, meeting.end_time) },
               {
                 left: 'Where',
                 right: (
@@ -67,7 +76,7 @@ export default async function MeetingPage({
 
           <p className="py-4 text-center">
             Need to make a change?{' '}
-            <Link href="mailto:support@peared.com" className="underline">
+            <Link href={SUPPORT_MAILTO} className="underline">
               Contact support
             </Link>
           </p>

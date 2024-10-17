@@ -1,5 +1,5 @@
 //src/lib/queries.ts
-import { AuthOtpResponse, createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Database } from './supabase-types';
 
 // Create the typed Supabase client
@@ -8,11 +8,17 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
+const adminSupabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABSE_SERVICE_ROLE_KEY!,
+);
+
 // Type definitions for custom tables
 export type Advisor = Database['public']['Tables']['advisors']['Row'];
 export type Meeting = Database['public']['Tables']['meetings']['Row'];
 export type College = Database['public']['Tables']['schools']['Row'];
 export type Availability = Database['public']['Tables']['availability']['Row'];
+export type Student = Database['public']['Tables']['students']['Row'];
 
 // Supabase Auth User type
 export type AuthUser = {
@@ -38,8 +44,23 @@ export type AdvisorWithLabels = Advisor & {
 };
 
 // OTP sign in
-export const signInWithOtp = async (email: string): Promise<AuthOtpResponse> =>
-  supabase.auth.signInWithOtp({ email });
+export const signUp = async (email: string, name: string | undefined) => {
+  const existingUser = await adminSupabase.from('profiles').select('*').eq('email', email).single();
+
+  if (existingUser.data) return existingUser.data;
+  const { data } = await adminSupabase.auth.admin.createUser({
+    email,
+    user_metadata: { name },
+  });
+
+  return data.user;
+};
+
+export const createStudent = async (user_id: string) => {
+  const { data, error } = await supabase.from('students').insert({ user_id }).select().single();
+  if (error) throw error;
+  return data;
+};
 
 // Query to get user by ID (from Supabase Auth)
 export const getUserById = async (userId: AuthUser['id']): Promise<AuthUser | null> => {
@@ -141,7 +162,7 @@ export const createMeeting = async (
   studentId: Meeting['student_id'],
   startTime: Meeting['start_time'],
   endTime: Meeting['end_time'],
-): Promise<Meeting | null> => {
+): Promise<Meeting> => {
   const { data, error } = await supabase
     .from('meetings')
     .insert({
@@ -150,6 +171,7 @@ export const createMeeting = async (
       start_time: startTime,
       end_time: endTime,
     })
+    .select()
     .single();
   if (error) throw error;
   return data;

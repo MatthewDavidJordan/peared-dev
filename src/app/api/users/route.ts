@@ -1,10 +1,11 @@
 //users/routes.ts
-import { signInWithOtp } from '@/lib/queries';
+import { createStudent, signUp } from '@/lib/queries';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 const CreateUserSchema = z.object({
   email: z.string().email(),
+  name: z.string().optional(),
 });
 
 export type CreateUserRequest = z.infer<typeof CreateUserSchema>;
@@ -21,15 +22,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const { email } = validatedData.data;
+    const { email, name } = validatedData.data;
 
-    const { error } = await signInWithOtp(email);
+    const user = await signUp(email, name);
+    if (!user) return NextResponse.json({ error: 'Error creating user' }, { status: 500 });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    console.log(user);
 
-    return NextResponse.json({ message: 'Magic link sent to email' }, { status: 200 });
+    const student = await createStudent(user.id);
+
+    return NextResponse.json({ user, student }, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

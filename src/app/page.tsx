@@ -55,7 +55,7 @@ function Footer() {
     <div className="flex items-center justify-center bg-primary py-5 text-primary-foreground">
       <p className="flex items-center gap-2">
         <Link href="/">
-          <h2 className="font-bold">PearEd</h2>
+          <span className="font-bold">PearEd</span>
         </Link>{' '}
         <span className="font-light text-primary-foreground/70">
           Copyright © {new Date().getFullYear()}
