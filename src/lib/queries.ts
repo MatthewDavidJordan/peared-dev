@@ -59,7 +59,7 @@ export const getAdvisorsForCollege = async (
   const { data, error } = await supabase
     .from('advisors')
     .select(
-      'advisor_id, user_id, school_id, availability_id, payment_info_id, bio, advisor_name, advisor_image',
+      'advisor_id, user_id, school_id, availability_id, payment_info_id, bio, advisor_name, advisor_image, ical_link',
     )
     .eq('school_id', collegeId);
   if (error) throw error;
@@ -70,7 +70,7 @@ export const getAdvisorById = async (advisorId: Advisor['advisor_id']): Promise<
   const { data, error } = await supabase
     .from('advisors')
     .select(
-      'advisor_id, user_id, school_id, availability_id, payment_info_id, bio, advisor_name, advisor_image',
+      'advisor_id, user_id, school_id, availability_id, payment_info_id, bio, advisor_name, advisor_image, ical_link',
     )
     .eq('advisor_id', advisorId)
     .single();
@@ -120,4 +120,16 @@ export const getMeetingById = async (meetingId: Meeting['meeting_id']): Promise<
     .single();
   if (error) throw error;
   return data;
+};
+
+export const getAdvisorIcalLinkById = async (
+  advisorId: Advisor['advisor_id'],
+): Promise<string | null> => {
+  const { data, error } = await supabase
+    .from('advisors')
+    .select('ical_link')
+    .eq('advisor_id', advisorId)
+    .single();
+  if (error) throw error;
+  return data?.ical_link || null;
 };

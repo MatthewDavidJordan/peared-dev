@@ -1,145 +1,74 @@
-//advisor\[id]\schedule\route.ts
 import { NextResponse } from 'next/server';
-import { getScheduleByAdvisorId, supabase } from '@/lib/queries';
+import { supabase } from '@/lib/queries';
 import ical from 'node-ical';
-import { createClient } from '@supabase/supabase-js'; // Assuming you have a Supabase client instance here
+
+type AvailabilityEvent = {
+  start_time: string;
+  end_time: string;
+};
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    // Fetch the advisor's availability and iCal link
-    const schedule = (await getScheduleByAdvisorId(Number(params.id))) as {
-      advisor_id: number | null;
-      ical_link?: string;
-    };
+    // Fetch the advisor's iCal link
+    const { data: advisor, error: advisorError } = await supabase
+      .from('advisors')
+      .select('advisor_id, ical_link')
+      .eq('advisor_id', Number(params.id))
+      .single();
 
-    if (!schedule.ical_link) {
-      return NextResponse.json({ error: 'iCal link not found' }, { status: 404 });
+    if (advisorError || !advisor) {
+      return NextResponse.json({ error: 'Advisor not found' }, { status: 404 });
     }
 
-    // Fetch and parse the iCal link
-    const events = await ical.async.fromURL(schedule.ical_link);
+    if (!advisor.ical_link) {
+      return NextResponse.json({ error: 'iCal link not found for advisor' }, { status: 404 });
+    }
+
+    // Parse the iCal link
+    const events = await ical.async.fromURL(advisor.ical_link);
+
+    // Set the date range
     const now = new Date();
-    const twoWeeksAgo = new Date(now);
-    twoWeeksAgo.setDate(now.getDate() - 14);
+    const twoWeeksAhead = new Date();
+    twoWeeksAhead.setDate(now.getDate() + 14);
 
-    // Initialize day-specific schedules
-    let mondayEvents: { start_time: Date; end_time: Date }[] = [];
-    let tuesdayEvents: { start_time: Date; end_time: Date }[] = [];
-    let wednesdayEvents: { start_time: Date; end_time: Date }[] = [];
-    let thursdayEvents: { start_time: Date; end_time: Date }[] = [];
-    let fridayEvents: { start_time: Date; end_time: Date }[] = [];
-    let saturdayEvents: { start_time: Date; end_time: Date }[] = [];
-    let sundayEvents: { start_time: Date; end_time: Date }[] = [];
+    const availabilityEvents: AvailabilityEvent[] = [];
 
-    // Filter events from the last two weeks and categorize them by day of the week
     Object.values(events).forEach((event: any) => {
-      if (event.start >= twoWeeksAgo && event.start <= now) {
-        const eventDay = new Date(event.start).getDay();
-        const eventObject = { start_time: event.start, end_time: event.end };
-
-        switch (eventDay) {
-          case 1: // Monday
-            mondayEvents.push(eventObject);
-            break;
-          case 2: // Tuesday
-            tuesdayEvents.push(eventObject);
-            break;
-          case 3: // Wednesday
-            wednesdayEvents.push(eventObject);
-            break;
-          case 4: // Thursday
-            thursdayEvents.push(eventObject);
-            break;
-          case 5: // Friday
-            fridayEvents.push(eventObject);
-            break;
-          case 6: // Saturday
-            saturdayEvents.push(eventObject);
-            break;
-          case 0: // Sunday
-            sundayEvents.push(eventObject);
-            break;
+      if (event.type === 'VEVENT') {
+        if (event.rrule) {
+          // Handle recurring events
+          const dates = event.rrule.between(now, twoWeeksAhead, true);
+          dates.forEach((date: Date) => {
+            const startDate = new Date(date);
+            const duration = event.end.getTime() - event.start.getTime();
+            const endDate = new Date(startDate.getTime() + duration);
+            availabilityEvents.push({
+              start_time: startDate.toISOString(),
+              end_time: endDate.toISOString(),
+            });
+          });
+        } else {
+          // Handle single events
+          if (event.start >= now && event.start <= twoWeeksAhead) {
+            availabilityEvents.push({
+              start_time: event.start.toISOString(),
+              end_time: event.end.toISOString(),
+            });
+          }
         }
       }
     });
 
-    // Update the availability with the day-specific schedules
-    const { error } = await supabase
-      .from('availability')
-      .update({
-        default_monday_schedule:
-          mondayEvents.length > 0
-            ? mondayEvents.map((event) => ({
-                start_time: event.start_time.toISOString(),
-                end_time: event.end_time.toISOString(),
-              }))
-            : null,
-        default_tuesday_schedule:
-          tuesdayEvents.length > 0
-            ? tuesdayEvents.map((event) => ({
-                start_time: event.start_time.toISOString(),
-                end_time: event.end_time.toISOString(),
-              }))
-            : null,
-        default_wednesday_schedule:
-          wednesdayEvents.length > 0
-            ? wednesdayEvents.map((event) => ({
-                start_time: event.start_time.toISOString(),
-                end_time: event.end_time.toISOString(),
-              }))
-            : null,
-        default_thursday_schedule:
-          thursdayEvents.length > 0
-            ? thursdayEvents.map((event) => ({
-                start_time: event.start_time.toISOString(),
-                end_time: event.end_time.toISOString(),
-              }))
-            : null,
-        default_friday_schedule:
-          fridayEvents.length > 0
-            ? fridayEvents.map((event) => ({
-                start_time: event.start_time.toISOString(),
-                end_time: event.end_time.toISOString(),
-              }))
-            : null,
-        default_saturday_schedule:
-          saturdayEvents.length > 0
-            ? saturdayEvents.map((event) => ({
-                start_time: event.start_time.toISOString(),
-                end_time: event.end_time.toISOString(),
-              }))
-            : null,
-        default_sunday_schedule:
-          sundayEvents.length > 0
-            ? sundayEvents.map((event) => ({
-                start_time: event.start_time.toISOString(),
-                end_time: event.end_time.toISOString(),
-              }))
-            : null,
-      })
-      .eq('advisor_id', schedule.advisor_id as number);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
     return NextResponse.json(
-      {
-        success: 'Availability updated with day-specific schedules',
-        mondayEvents,
-        tuesdayEvents,
-        wednesdayEvents,
-        thursdayEvents,
-        fridayEvents,
-        saturdayEvents,
-        sundayEvents,
-      },
+      { success: 'Availability fetched successfully', events: availabilityEvents },
       { status: 200 },
     );
   } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
+    console.error('Error in schedule route:', error);
+    return NextResponse.json(
+      { error: 'An unknown error occurred', details: (error as Error).message },
+      { status: 500 },
+    );
   }
 }

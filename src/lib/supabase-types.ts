@@ -74,6 +74,7 @@ export type Database = {
           advisor_name: string
           availability_id: number | null
           bio: string | null
+          ical_link: string | null
           payment_info_id: number | null
           school_id: number
           user_id: string
@@ -84,6 +85,7 @@ export type Database = {
           advisor_name: string
           availability_id?: number | null
           bio?: string | null
+          ical_link?: string | null
           payment_info_id?: number | null
           school_id: number
           user_id: string
@@ -94,6 +96,7 @@ export type Database = {
           advisor_name?: string
           availability_id?: number | null
           bio?: string | null
+          ical_link?: string | null
           payment_info_id?: number | null
           school_id?: number
           user_id?: string
@@ -112,7 +115,6 @@ export type Database = {
           default_thursday_schedule: Json | null
           default_tuesday_schedule: Json | null
           default_wednesday_schedule: Json | null
-          ical_link: string | null
         }
         Insert: {
           advisor_id?: number | null
@@ -125,7 +127,6 @@ export type Database = {
           default_thursday_schedule?: Json | null
           default_tuesday_schedule?: Json | null
           default_wednesday_schedule?: Json | null
-          ical_link?: string | null
         }
         Update: {
           advisor_id?: number | null
@@ -138,7 +139,6 @@ export type Database = {
           default_thursday_schedule?: Json | null
           default_tuesday_schedule?: Json | null
           default_wednesday_schedule?: Json | null
-          ical_link?: string | null
         }
         Relationships: [
           {
