@@ -6,6 +6,7 @@ import { ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { Fragment } from 'react';
 
 function generateWhenString(start_time: string, end_time: string) {
   const dateString = new Date(start_time).toLocaleDateString();
@@ -28,7 +29,7 @@ export default async function MeetingPage({
   if (!advisor) redirect('/404');
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center py-10">
+    <div className="flex min-h-screen w-full flex-col items-center justify-center p-3 sm:p-10">
       <Card className="max-w-[500px] shadow-lg">
         <CardHeader>
           <Image
@@ -39,9 +40,9 @@ export default async function MeetingPage({
             alt="advisor photo"
           />
         </CardHeader>
-        <CardContent className="flex flex-col gap-4 p-8 pt-0">
+        <CardContent className="flex flex-col gap-4 pt-0 sm:p-8">
           <div className="flex flex-col items-center gap-3 py-5 text-center">
-            <h1 className="text-2xl font-bold">🎉 Your meeting is scheduled 🎉</h1>
+            <h1 className="text-2xl font-bold">🎉&nbsp;Your meeting is scheduled&nbsp;🎉</h1>
             <p className="text-secondary-foreground">
               We sent you an email and calendar invitation with the details
             </p>
@@ -49,7 +50,7 @@ export default async function MeetingPage({
 
           <hr />
 
-          <div className="grid grid-cols-3 gap-y-2">
+          <div className="grid grid-cols-3 gap-y-2 text-sm sm:text-base">
             {[
               { left: 'Who', right: advisor.advisor_name },
               { left: 'When', right: generateWhenString(meeting.start_time, meeting.end_time) },
@@ -62,11 +63,11 @@ export default async function MeetingPage({
                   </Link>
                 ),
               },
-            ].map((item) => (
-              <>
+            ].map((item, index) => (
+              <Fragment key={index}>
                 <p className="font-semibold">{item.left}</p>
                 <p className="col-span-2">{item.right}</p>
-              </>
+              </Fragment>
             ))}
           </div>
 
@@ -75,7 +76,7 @@ export default async function MeetingPage({
           <p className="py-4 text-center">
             Need to make a change?{' '}
             <Link href={SUPPORT_MAILTO} className="underline">
-              Contact support
+              Contact&nbsp;support
             </Link>
           </p>
 

@@ -57,7 +57,8 @@ export default function TimeForm({
         disabled={isDateDisabled}
         today={undefined}
       />
-      <div className="flex h-[454px] flex-col gap-2 p-4">
+      {/* TODO: slap flexbox into not requiring a fixed height */}
+      <div className="flex flex-col gap-2 p-4 lg:h-[454px]">
         <p className="inline-flex items-end gap-1.5">
           <b>{new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(selectedDate)}</b>
           <span className="rounded bg-secondary px-1 font-mono text-secondary-foreground">
