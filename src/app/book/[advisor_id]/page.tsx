@@ -1,7 +1,6 @@
-import { getAdvisorAvailability } from '@/app/api/advisor/[id]/schedule/route';
 import BookCard from '@/app/book/[advisor_id]/BookCard';
 import NavBar from '@/components/NavBar';
-import { getAdvisorById } from '@/lib/queries';
+import { getAdvisorAvailability, getAdvisorById } from '@/lib/queries';
 import { redirect } from 'next/navigation';
 
 export default async function CalendarPage({

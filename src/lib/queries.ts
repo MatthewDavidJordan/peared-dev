@@ -1,9 +1,10 @@
 //src/lib/queries.ts
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import ical from 'node-ical';
 import { Database } from './supabase-types';
 
 // Create the typed Supabase client
-export const supabase: SupabaseClient<Database> = createClient<Database>(
+const supabase: SupabaseClient<Database> = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
@@ -43,7 +44,11 @@ export type AdvisorWithLabels = Advisor & {
   advisor_labels: AdvisorLabel[];
 };
 
-// OTP sign in
+export type AvailabilityEvent = {
+  start_time: string;
+  end_time: string;
+};
+
 export const signUp = async (email: string, name: string | undefined) => {
   const existingUser = await adminSupabase.from('profiles').select('*').eq('email', email).single();
 
@@ -142,6 +147,57 @@ export const getAdvisorById = async (advisorId: Advisor['advisor_id']) => {
 
   return { ...advisorData, ...schoolData };
 };
+
+export async function getAdvisorAvailability(advisorId: number) {
+  // Fetch the advisor's iCal link
+  const { data: advisor, error: advisorError } = await supabase
+    .from('advisors')
+    .select('advisor_id, ical_link')
+    .eq('advisor_id', advisorId)
+    .single();
+
+  if (advisorError || !advisor) return null;
+
+  if (!advisor.ical_link) return null;
+
+  // Parse the iCal link
+  const events = await ical.async.fromURL(advisor.ical_link);
+
+  // Set the date range
+  const now = new Date();
+  const twoWeeksAhead = new Date();
+  twoWeeksAhead.setDate(now.getDate() + 14);
+
+  const availabilityEvents: AvailabilityEvent[] = [];
+
+  Object.values(events).forEach((event: any) => {
+    if (event.type === 'VEVENT') {
+      if (event.rrule) {
+        // Handle recurring events
+        const dates = event.rrule.between(now, twoWeeksAhead, true);
+        dates.forEach((date: Date) => {
+          const startDate = new Date(date);
+          const duration = event.end.getTime() - event.start.getTime();
+          const endDate = new Date(startDate.getTime() + duration);
+          availabilityEvents.push({
+            start_time: startDate.toISOString(),
+            end_time: endDate.toISOString(),
+          });
+        });
+      } else {
+        // Handle single events
+        if (event.start >= now && event.start <= twoWeeksAhead) {
+          availabilityEvents.push({
+            start_time: event.start.toISOString(),
+            end_time: event.end.toISOString(),
+          });
+        }
+      }
+    }
+  });
+
+  return availabilityEvents;
+}
 
 // Query to get the schedule of an advisor by advisor ID using Availability type
 export const getScheduleByAdvisorId = async (
