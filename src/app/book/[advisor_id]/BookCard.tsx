@@ -1,4 +1,5 @@
 'use client';
+import type { AvailabilityEvent } from '@/app/api/advisor/[id]/schedule/route';
 import AdvisorPreview from '@/app/book/[advisor_id]/AdvisorPreview';
 import SignUpForm from '@/app/book/[advisor_id]/SignUpForm';
 import TimeForm from '@/app/book/[advisor_id]/TimeForm';
@@ -8,8 +9,10 @@ import { parseAsIsoDateTime, useQueryState } from 'nuqs';
 
 export default function BookCard({
   advisor,
+  availabilities,
 }: {
   advisor: Awaited<ReturnType<typeof getAdvisorById>>;
+  availabilities: AvailabilityEvent[];
 }) {
   const [selectedTime, setSelectedTime] = useQueryState('time', parseAsIsoDateTime);
   return (
@@ -19,7 +22,11 @@ export default function BookCard({
     >
       <AdvisorPreview advisor={advisor} />
       {!selectedTime ? (
-        <TimeForm selectedTime={selectedTime} setSelectedTime={setSelectedTime} />
+        <TimeForm
+          availabilities={availabilities}
+          selectedTime={selectedTime}
+          setSelectedTime={setSelectedTime}
+        />
       ) : (
         <SignUpForm
           advisorId={advisor.advisor_id}

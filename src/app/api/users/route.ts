@@ -27,8 +27,6 @@ export async function POST(req: Request) {
     const user = await signUp(email, name);
     if (!user) return NextResponse.json({ error: 'Error creating user' }, { status: 500 });
 
-    console.log(user);
-
     const student = await createStudent(user.id);
 
     return NextResponse.json({ user, student }, { status: 200 });

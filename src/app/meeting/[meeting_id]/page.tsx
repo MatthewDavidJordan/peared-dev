@@ -27,8 +27,6 @@ export default async function MeetingPage({
   const advisor = await getAdvisorById(meeting.advisor_id!);
   if (!advisor) redirect('/404');
 
-  console.log(meeting, advisor);
-
   return (
     <div className="flex min-h-screen w-full flex-col items-center justify-center py-10">
       <Card className="max-w-[500px] shadow-lg">
