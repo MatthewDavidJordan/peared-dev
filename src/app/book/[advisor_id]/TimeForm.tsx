@@ -1,9 +1,9 @@
 'use client';
-import type { AvailabilityEvent } from '@/app/api/advisor/[id]/schedule/route';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { DEFAULT_MEETING_DURATION_MS } from '@/lib/consts';
 import { onSameDay } from '@/lib/funcs';
+import type { AvailabilityEvent } from '@/lib/queries';
 import type { Setter } from '@/lib/types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
