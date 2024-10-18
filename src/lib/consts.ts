@@ -1,4 +1,4 @@
-export const FALLBACK_IMAGE = '/leo.png';
+export const FALLBACK_IMAGE = '/placeholder.svg';
 
 export const DEFAULT_MEETING_DURATION_MS = 30 * 60 * 1000;
 
