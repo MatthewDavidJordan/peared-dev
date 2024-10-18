@@ -18,7 +18,7 @@ export default async function Home() {
 
 function Hero() {
   return (
-    <div className="flex w-full flex-col items-center gap-6 px-10 py-20">
+    <div className="flex w-full flex-col items-center gap-6 px-10 py-20 text-center">
       <h1 className="text-5xl font-bold">Discover Your Perfect College Fit</h1>
       <p>Connect with real students. Get authentic insights. Make informed decisions.</p>
       {/* <Button asChild variant="accent">
@@ -31,7 +31,13 @@ function Hero() {
 async function SchoolSection() {
   const schools = await getAllColleges();
   return (
-    <section className="max-w- grid grid-cols-3 gap-10 px-10">
+    <section className="max-w- grid grid-cols-1 gap-10 px-10 sm:grid-cols-2 lg:grid-cols-3">
+      {schools.map((school) => (
+        <SchoolCard key={school.school_id} school={school} />
+      ))}
+      {schools.map((school) => (
+        <SchoolCard key={school.school_id} school={school} />
+      ))}
       {schools.map((school) => (
         <SchoolCard key={school.school_id} school={school} />
       ))}

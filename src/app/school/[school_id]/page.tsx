@@ -18,7 +18,7 @@ export default async function CollegePage({
       <NavBar />
       <div className="container mx-auto px-4 py-8">
         <h1 className="mb-8 text-center text-5xl font-bold">Georgetown</h1>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {advisors.map((advisor) => (
             <AdvisorCard key={advisor.advisor_id} advisor={advisor} />
           ))}

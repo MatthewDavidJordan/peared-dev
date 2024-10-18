@@ -93,7 +93,7 @@ export default function SignUpForm({
   const [isLoading, setIsLoading] = useState(false);
 
   return (
-    <div className="!h-96 !w-96">
+    <div className="lg:!h-96 lg:!w-96">
       <div className="flex h-full flex-col gap-4 px-5 py-4">
         <Labelled label="Email *">
           <Input

@@ -17,7 +17,7 @@ export default async function CalendarPage({
   return (
     <div className="flex min-h-screen flex-col">
       <NavBar />
-      <div className="flex w-full flex-1 flex-col items-center justify-center">
+      <div className="flex w-full flex-1 flex-col items-center justify-center p-5 sm:p-10">
         <BookCard advisor={advisor} availabilities={availabilities} />
       </div>
     </div>
