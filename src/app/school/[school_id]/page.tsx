@@ -1,8 +1,9 @@
+import { AdvisorLabels } from '@/app/book/[advisor_id]/AdvisorPreview';
 import NavBar from '@/components/NavBar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardTitle } from '@/components/ui/card';
 import { FALLBACK_IMAGE } from '@/lib/consts';
-import { getAdvisorsForCollege, type Advisor } from '@/lib/queries';
+import { getAdvisorsForCollege } from '@/lib/queries';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -28,7 +29,11 @@ export default async function CollegePage({
   );
 }
 
-function AdvisorCard({ advisor }: { advisor: Advisor }) {
+function AdvisorCard({
+  advisor,
+}: {
+  advisor: Awaited<ReturnType<typeof getAdvisorsForCollege>>[0];
+}) {
   return (
     <Card className="flex flex-col overflow-hidden">
       <Image
@@ -41,14 +46,7 @@ function AdvisorCard({ advisor }: { advisor: Advisor }) {
       <CardTitle className="p-4">{advisor.advisor_name}</CardTitle>
       <CardContent className="flex-grow">
         <p className="mb-4 text-sm text-muted-foreground">{advisor.bio}</p>
-        <div className="space-y-2">
-          {/* {advisor.attributes.map((attr, index) => (
-            <div key={index} className="flex justify-between text-sm">
-              <span className="font-medium">{attr.key}:</span>
-              <span className="text-muted-foreground">{attr.value}</span>
-            </div>
-          ))} */}
-        </div>
+        <AdvisorLabels advisor_labels={advisor.advisor_labels} />
       </CardContent>
       <CardFooter>
         <Button variant="primaryToAccent" className="w-full">

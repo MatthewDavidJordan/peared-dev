@@ -98,13 +98,26 @@ export const getCollegeById = async (collegeId: number): Promise<College | null>
   return data;
 };
 
-export const getAdvisorsForCollege = async (
-  collegeId: College['school_id'],
-): Promise<Advisor[]> => {
+export const getAdvisorsForCollege = async (collegeId: College['school_id']) => {
   const { data, error } = await supabase
     .from('advisors')
     .select(
-      'advisor_id, user_id, school_id, availability_id, payment_info_id, bio, advisor_name, advisor_image, ical_link',
+      `advisor_id,
+      user_id,
+      school_id,
+      availability_id,
+      payment_info_id,
+      bio,
+      advisor_name,
+      advisor_image,
+      ical_link,
+      advisor_labels (
+        labels (
+          label_id,
+          label_name,
+          category_name
+        )
+      )`,
     )
     .eq('school_id', collegeId);
   if (error) throw error;

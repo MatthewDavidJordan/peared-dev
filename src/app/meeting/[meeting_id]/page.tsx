@@ -1,3 +1,4 @@
+import { AdvisorLabels } from '@/app/book/[advisor_id]/AdvisorPreview';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { FALLBACK_IMAGE, SUPPORT_MAILTO } from '@/lib/consts';
@@ -40,7 +41,7 @@ export default async function MeetingPage({
             alt="advisor photo"
           />
         </CardHeader>
-        <CardContent className="flex flex-col gap-4 pt-0 sm:p-8">
+        <CardContent className="flex flex-col gap-4 !pt-0 sm:p-8">
           <div className="flex flex-col items-center gap-3 py-5 text-center">
             <h1 className="text-2xl font-bold">🎉&nbsp;Your meeting is scheduled&nbsp;🎉</h1>
             <p className="text-secondary-foreground">
@@ -84,7 +85,7 @@ export default async function MeetingPage({
 
           <h2 className="text-2xl font-bold">{advisor.advisor_name}</h2>
           <p className="text-sm font-light text-zinc-600">{advisor.bio}</p>
-          {/* TODO: labels */}
+          <AdvisorLabels advisor_labels={advisor.advisor_labels} />
 
           <hr />
 

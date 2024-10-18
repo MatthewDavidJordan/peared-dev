@@ -31,8 +31,10 @@ export default function AdvisorPreview({
           {advisor.school_name}
         </Link>
         <p className="text-sm font-light text-zinc-600">{advisor.bio}</p>
-        {/* TODO: labels */}
+        <AdvisorLabels advisor_labels={advisor.advisor_labels} />
+
         <div className="flex-1" />
+
         <p className="flex items-center gap-1 text-sm">
           <Clock className="size-4" />
           <span>{meetingLengthMinString} min</span>
@@ -42,6 +44,26 @@ export default function AdvisorPreview({
           <span>{timeZone}</span>
         </p>
       </div>
+    </div>
+  );
+}
+
+export function AdvisorLabels({
+  advisor_labels,
+}: {
+  advisor_labels: Awaited<ReturnType<typeof getAdvisorById>>['advisor_labels'];
+}) {
+  return (
+    <div className="space-y-2">
+      {advisor_labels
+        .map((item) => item.labels)
+        .filter((label): label is Exclude<typeof label, null> => !!label)
+        .map((label) => (
+          <div key={label.label_id} className="flex justify-between text-sm">
+            <span className="font-medium">{label.category_name}:</span>
+            <span className="text-muted-foreground">{label.label_name}</span>
+          </div>
+        ))}
     </div>
   );
 }
