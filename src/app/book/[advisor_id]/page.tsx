@@ -44,6 +44,7 @@ export default function CalendarPage() {
       >
         <AdvisorPreview
           advisor={{
+            ical_link: '',
             advisor_id: 0,
             advisor_image: '/leo.png',
             advisor_name: 'Leo',

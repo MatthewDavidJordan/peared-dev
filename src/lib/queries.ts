@@ -1,8 +1,9 @@
+//src/lib/queries.ts
 import { AuthOtpResponse, createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Database } from './supabase-types';
 
 // Create the typed Supabase client
-const supabase: SupabaseClient<Database> = createClient<Database>(
+export const supabase: SupabaseClient<Database> = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
@@ -17,6 +18,23 @@ export type Availability = Database['public']['Tables']['availability']['Row'];
 export type AuthUser = {
   id: string;
   email: string;
+};
+
+// Define Label type
+export type Label = {
+  label_id: number;
+  label_name: string;
+  category_name: string;
+};
+
+// Define AdvisorLabel type
+export type AdvisorLabel = {
+  labels: Label | null;
+};
+
+// Define AdvisorWithLabels type
+export type AdvisorWithLabels = Advisor & {
+  advisor_labels: AdvisorLabel[];
 };
 
 // OTP sign in
@@ -37,15 +55,17 @@ export const getUserById = async (userId: AuthUser['id']): Promise<AuthUser | nu
 
 // Query to get all colleges (schools)
 export const getAllColleges = async (): Promise<College[]> => {
-  const { data, error } = await supabase.from('schools').select('*');
+  const { data, error } = await supabase
+    .from('schools')
+    .select('school_id, school_name, school_image');
   if (error) throw error;
   return data || [];
 };
 
-export const getCollegeById = async (collegeId: College['school_id']): Promise<College | null> => {
+export const getCollegeById = async (collegeId: number): Promise<College | null> => {
   const { data, error } = await supabase
     .from('schools')
-    .select('*')
+    .select('school_id, school_name, school_image')
     .eq('school_id', collegeId)
     .single();
   if (error) throw error;
@@ -58,21 +78,41 @@ export const getAdvisorsForCollege = async (
   const { data, error } = await supabase
     .from('advisors')
     .select(
-      'advisor_id, user_id, school_id, availability_id, payment_info_id, bio, advisor_name, advisor_image',
+      'advisor_id, user_id, school_id, availability_id, payment_info_id, bio, advisor_name, advisor_image, ical_link',
     )
     .eq('school_id', collegeId);
   if (error) throw error;
   return data || [];
 };
 
-export const getAdvisorById = async (advisorId: Advisor['advisor_id']): Promise<Advisor | null> => {
+export const getAdvisorById = async (
+  advisorId: Advisor['advisor_id'],
+): Promise<AdvisorWithLabels | null> => {
   const { data, error } = await supabase
     .from('advisors')
     .select(
-      'advisor_id, user_id, school_id, availability_id, payment_info_id, bio, advisor_name, advisor_image',
+      `
+      advisor_id,
+      user_id,
+      school_id,
+      availability_id,
+      payment_info_id,
+      bio,
+      advisor_name,
+      advisor_image,
+      ical_link,
+      advisor_labels (
+        labels (
+          label_id,
+          label_name,
+          category_name
+        )
+      )
+      `,
     )
     .eq('advisor_id', advisorId)
     .single();
+
   if (error) throw error;
   return data;
 };
@@ -119,4 +159,16 @@ export const getMeetingById = async (meetingId: Meeting['meeting_id']): Promise<
     .single();
   if (error) throw error;
   return data;
+};
+
+export const getAdvisorIcalLinkById = async (
+  advisorId: Advisor['advisor_id'],
+): Promise<string | null> => {
+  const { data, error } = await supabase
+    .from('advisors')
+    .select('ical_link')
+    .eq('advisor_id', advisorId)
+    .single();
+  if (error) throw error;
+  return data?.ical_link || null;
 };

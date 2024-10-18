@@ -1,4 +1,4 @@
-//meeting route
+//meeting/routes.ts
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import { createMeeting, Meeting } from '@/lib/queries';
@@ -31,7 +31,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid ID format' }, { status: 400 });
     }
 
-    const meeting: Meeting | null = await createMeeting(advisorIdNumber, studentIdNumber, start_time, end_time);
+    const meeting: Meeting | null = await createMeeting(
+      advisorIdNumber,
+      studentIdNumber,
+      start_time,
+      end_time,
+    );
 
     return NextResponse.json(meeting, { status: 200 });
   } catch (error) {

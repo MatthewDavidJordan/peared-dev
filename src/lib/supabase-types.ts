@@ -74,8 +74,9 @@ export type Database = {
           advisor_name: string
           availability_id: number | null
           bio: string | null
+          ical_link: string | null
           payment_info_id: number | null
-          school_id: number | null
+          school_id: number
           user_id: string
         }
         Insert: {
@@ -84,8 +85,9 @@ export type Database = {
           advisor_name: string
           availability_id?: number | null
           bio?: string | null
+          ical_link?: string | null
           payment_info_id?: number | null
-          school_id?: number | null
+          school_id: number
           user_id: string
         }
         Update: {
@@ -94,8 +96,9 @@ export type Database = {
           advisor_name?: string
           availability_id?: number | null
           bio?: string | null
+          ical_link?: string | null
           payment_info_id?: number | null
-          school_id?: number | null
+          school_id?: number
           user_id?: string
         }
         Relationships: []
@@ -288,6 +291,24 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          email: string
+          id: string
+          name: string | null
+        }
+        Insert: {
+          email?: string
+          id: string
+          name?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          name?: string | null
+        }
+        Relationships: []
+      }
       ratings: {
         Row: {
           advisor_id: number | null
@@ -330,14 +351,17 @@ export type Database = {
       schools: {
         Row: {
           school_id: number
+          school_image: string | null
           school_name: string
         }
         Insert: {
           school_id?: number
+          school_image?: string | null
           school_name: string
         }
         Update: {
           school_id?: number
+          school_image?: string | null
           school_name?: string
         }
         Relationships: []
@@ -840,4 +864,19 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema["CompositeTypes"]
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
