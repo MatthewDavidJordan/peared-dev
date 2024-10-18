@@ -1,14 +1,16 @@
 //meeting/routes.ts
-import { z } from 'zod';
-import { NextResponse } from 'next/server';
 import { createMeeting, Meeting } from '@/lib/queries';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
 const CreateMeetingSchema = z.object({
-  advisor_id: z.string(),
-  student_id: z.string(),
+  advisor_id: z.number(),
+  student_id: z.number(),
   start_time: z.string(),
   end_time: z.string(),
 });
+
+export type CreateMeetingRequest = z.infer<typeof CreateMeetingSchema>;
 
 export async function POST(req: Request) {
   try {
@@ -24,16 +26,9 @@ export async function POST(req: Request) {
 
     const { advisor_id, student_id, start_time, end_time } = validatedData.data;
 
-    const advisorIdNumber = Number(advisor_id);
-    const studentIdNumber = Number(student_id);
-
-    if (isNaN(advisorIdNumber) || isNaN(studentIdNumber)) {
-      return NextResponse.json({ error: 'Invalid ID format' }, { status: 400 });
-    }
-
     const meeting: Meeting | null = await createMeeting(
-      advisorIdNumber,
-      studentIdNumber,
+      advisor_id,
+      student_id,
       start_time,
       end_time,
     );

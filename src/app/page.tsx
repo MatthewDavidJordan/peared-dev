@@ -10,6 +10,8 @@ export default async function Home() {
       <NavBar />
       <Hero />
       <SchoolSection />
+      <div className="flex-1" />
+      <Footer />
     </div>
   );
 }
@@ -45,5 +47,20 @@ function SchoolCard({ school }: { school: College }) {
         className="w-full rounded-lg border shadow-lg duration-300 hover:scale-105"
       />
     </Link>
+  );
+}
+
+function Footer() {
+  return (
+    <div className="flex items-center justify-center bg-primary py-5 text-primary-foreground">
+      <p className="flex items-center gap-2">
+        <Link href="/">
+          <span className="font-bold">PearEd</span>
+        </Link>{' '}
+        <span className="font-light text-primary-foreground/70">
+          Copyright © {new Date().getFullYear()}
+        </span>
+      </p>
+    </div>
   );
 }
