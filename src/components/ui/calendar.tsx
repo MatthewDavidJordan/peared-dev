@@ -22,18 +22,18 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         nav: 'space-x-2 flex items-center', // Slightly larger space between nav buttons
         nav_button: cn(
           buttonVariants({ variant: 'outline' }),
-          'h-10 w-10 bg-transparent p-0 opacity-70 hover:opacity-100', // Bigger nav buttons
+          'size-8 sm:size-10 bg-transparent p-0 opacity-70 hover:opacity-100', // Bigger nav buttons
         ),
         nav_button_previous: 'absolute left-2',
         nav_button_next: 'absolute right-2',
         table: 'w-full border-collapse space-y-2', // More space between rows
         head_row: 'flex',
-        head_cell: 'text-muted-foreground rounded-md w-12 font-medium text-base', // Larger headers
+        head_cell: 'text-muted-foreground rounded-md w-10 sm:w-12 font-medium text-base', // Larger headers
         row: 'flex w-full mt-4', // Increased top margin between rows
-        cell: 'h-12 w-12 text-center text-base p-1 relative', // Bigger cells
+        cell: 'size-10 sm:size-12 text-center text-base p-1 relative', // Bigger cells
         day: cn(
           buttonVariants({ variant: 'ghost' }),
-          'h-12 w-12 p-0 font-medium aria-selected:opacity-100', // Larger days
+          'size-10 sm:size-12 p-0 font-medium aria-selected:opacity-100', // Larger days
         ),
         day_range_end: 'day-range-end',
         day_selected:
