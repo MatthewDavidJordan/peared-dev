@@ -31,7 +31,7 @@ function Hero() {
 async function SchoolSection() {
   const schools = await getAllColleges();
   return (
-    <section className="max-w- grid grid-cols-1 gap-10 px-10 sm:grid-cols-2 lg:grid-cols-3">
+    <section className="grid grid-cols-1 gap-10 p-5 !pt-0 sm:grid-cols-2 sm:p-10 lg:grid-cols-3">
       {schools.map((school) => (
         <SchoolCard key={school.school_id} school={school} />
       ))}
