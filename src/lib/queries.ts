@@ -1,5 +1,6 @@
 //src/lib/queries.ts
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { toZonedTime } from 'date-fns-tz';
 import ical from 'node-ical';
 import { Database } from './supabase-types';
 
@@ -161,6 +162,22 @@ export const getAdvisorById = async (advisorId: Advisor['advisor_id']) => {
   return { ...advisorData, ...schoolData };
 };
 
+/**
+ * This function adds the timezone information to dates gotten from a recurring event. By default the dates don't have a timezone.
+ */
+const resolveRecurrenceTimes = (event: ical.VEvent, dates: Date[]) => {
+  return dates.map((date) => {
+    if (!event.rrule) throw new Error("Event doesn't have a recurrence rule");
+
+    const tzId = event.rrule.origOptions.tzid;
+    if (tzId) {
+      return toZonedTime(toZonedTime(date, 'UTC'), tzId);
+    } else {
+      throw new Error('Timezone not provided');
+    }
+  });
+};
+
 export async function getAdvisorAvailability(advisorId: number) {
   // Fetch the advisor's iCal link
   const { data: advisor, error: advisorError } = await supabase
@@ -183,28 +200,33 @@ export async function getAdvisorAvailability(advisorId: number) {
 
   const availabilityEvents: AvailabilityEvent[] = [];
 
-  Object.values(events).forEach((event: any) => {
-    if (event.type === 'VEVENT') {
-      if (event.rrule) {
-        // Handle recurring events
-        const dates = event.rrule.between(now, twoWeeksAhead, true);
-        dates.forEach((date: Date) => {
-          const startDate = new Date(date);
-          const duration = event.end.getTime() - event.start.getTime();
-          const endDate = new Date(startDate.getTime() + duration);
-          availabilityEvents.push({
-            start_time: startDate.toISOString(),
-            end_time: endDate.toISOString(),
-          });
+  Object.values(events).forEach((event) => {
+    if (event.type !== 'VEVENT') return;
+
+    if (event.rrule) {
+      // Handle recurring events
+
+      const dates = event.rrule.between(now, twoWeeksAhead, true);
+
+      resolveRecurrenceTimes(event, dates).forEach((date) => {
+        const startDate = new Date(date);
+        const duration = event.end.getTime() - event.start.getTime();
+        const endDate = new Date(startDate.getTime() + duration);
+        availabilityEvents.push({
+          start_time: startDate.toISOString(),
+          end_time: endDate.toISOString(),
         });
-      } else {
-        // Handle single events
-        if (event.start >= now && event.start <= twoWeeksAhead) {
-          availabilityEvents.push({
-            start_time: event.start.toISOString(),
-            end_time: event.end.toISOString(),
-          });
-        }
+      });
+    } else {
+      // Handle single events
+      if (
+        event.start.getTime() >= now.getTime() &&
+        event.end.getTime() <= twoWeeksAhead.getTime()
+      ) {
+        availabilityEvents.push({
+          start_time: event.start.toISOString(),
+          end_time: event.end.toISOString(),
+        });
       }
     }
   });

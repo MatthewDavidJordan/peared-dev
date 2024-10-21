@@ -2,9 +2,9 @@
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { DEFAULT_MEETING_DURATION_MS } from '@/lib/consts';
-import { onSameDay } from '@/lib/funcs';
 import type { AvailabilityEvent } from '@/lib/queries';
 import type { Setter } from '@/lib/types';
+import { isSameDay } from 'date-fns';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export default function TimeForm({
@@ -19,17 +19,19 @@ export default function TimeForm({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
   const dates = useMemo(() => {
-    return availabilities.flatMap((item) => {
-      // break start_time and end_time into chunks of size DEFAULT_MEETING_DURATION_MS
-      const start = new Date(item.start_time);
-      const end = new Date(item.end_time);
-      const duration = DEFAULT_MEETING_DURATION_MS;
-      const times = [];
-      for (let t = start.getTime(); t < end.getTime(); t += duration) {
-        times.push(new Date(t));
-      }
-      return times;
-    });
+    return [
+      ...availabilities.flatMap((item) => {
+        // break start_time and end_time into chunks of size DEFAULT_MEETING_DURATION_MS
+        const start = new Date(item.start_time);
+        const end = new Date(item.end_time);
+        const duration = DEFAULT_MEETING_DURATION_MS;
+        const times = [];
+        for (let t = start.getTime(); t + duration <= end.getTime(); t += duration) {
+          times.push(new Date(t));
+        }
+        return times;
+      }),
+    ].sort((a, b) => a.getTime() - b.getTime());
   }, [availabilities]);
 
   useEffect(() => {
@@ -38,13 +40,13 @@ export default function TimeForm({
 
   const isDateDisabled = useCallback(
     (date: Date) => {
-      return !dates.some((d) => onSameDay(d, date));
+      return !dates.some((d) => isSameDay(d, date));
     },
     [dates],
   );
   const selectedDayTimes = useMemo(() => {
     if (!selectedDate) return [];
-    return dates.filter((d) => onSameDay(d, selectedDate));
+    return dates.filter((d) => isSameDay(d, selectedDate));
   }, [dates, selectedDate]);
 
   return (
@@ -78,18 +80,22 @@ export default function TimeForm({
 function TimeSlot({ date, ...props }: { date: Date } & ButtonProps) {
   const startTimeString = useMemo(
     () =>
-      date.toLocaleTimeString([], {
+      date.toLocaleTimeString(navigator.language, {
         hour: 'numeric',
         minute: '2-digit',
       }),
     [date],
   );
+
   const endTimeString = useMemo(
     () =>
-      new Date(date.getTime() + DEFAULT_MEETING_DURATION_MS).toLocaleTimeString([], {
-        hour: 'numeric',
-        minute: '2-digit',
-      }),
+      new Date(date.getTime() + DEFAULT_MEETING_DURATION_MS).toLocaleTimeString(
+        navigator.language,
+        {
+          hour: 'numeric',
+          minute: '2-digit',
+        },
+      ),
     [date],
   );
   return (
