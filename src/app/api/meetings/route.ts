@@ -36,7 +36,6 @@ export async function getAccessToken(code: string) {
   return tokens.access_token;
 }
 
-// Function to create a Google Meet
 async function createGoogleMeet() {
   try {
     const response = await axios.post(
@@ -52,8 +51,7 @@ async function createGoogleMeet() {
 
     return response.data.joinUri;
   } catch (error) {
-    console.error('Error creating Google Meet:', error.response.data);
-    throw new Error('Failed to create Google Meet');
+    throw new Error('Failed to create Google Meet: ' + error);
   }
 }
 
