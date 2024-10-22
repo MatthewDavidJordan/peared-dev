@@ -1,3 +1,4 @@
+//advisor/[id]/schedule/routes.ts
 import { getAdvisorAvailability } from '@/lib/queries';
 import { NextResponse } from 'next/server';
 

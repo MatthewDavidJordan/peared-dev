@@ -1,3 +1,4 @@
+//advisor/[id]/route.ts
 import { getAdvisorById } from '@/lib/queries';
 import { NextResponse } from 'next/server';
 

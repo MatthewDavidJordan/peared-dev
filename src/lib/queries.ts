@@ -26,6 +26,7 @@ export type Student = Database['public']['Tables']['students']['Row'];
 export type AuthUser = {
   id: string;
   email: string;
+  name: string;
 };
 
 // Define Label type
@@ -69,15 +70,23 @@ export const createStudent = async (user_id: string) => {
 };
 
 // Query to get user by ID (from Supabase Auth)
-export const getUserById = async (userId: AuthUser['id']): Promise<AuthUser | null> => {
-  const { data, error } = await supabase.auth.getUser(userId);
+// src/lib/queries.ts
+
+// src/lib/queries.ts
+
+export const getUserById = async (userId: string): Promise<AuthUser> => {
+  const { data, error } = await adminSupabase.auth.admin.getUserById(userId);
   if (error) throw error;
 
-  if (!data?.user || !data.user.email) {
+  const user = data.user;
+
+  if (!user || !user.email) {
     throw new Error('User not found or email is missing');
   }
 
-  return { id: data.user.id, email: data.user.email };
+  const name = user.user_metadata?.name || '';
+
+  return { id: user.id, email: user.email, name };
 };
 
 // Query to get all colleges (schools)
@@ -161,7 +170,15 @@ export const getAdvisorById = async (advisorId: Advisor['advisor_id']) => {
 
   return { ...advisorData, ...schoolData };
 };
-
+export const getStudentById = async (studentId: number): Promise<Student | null> => {
+  const { data, error } = await supabase
+    .from('students')
+    .select('*')
+    .eq('student_id', studentId)
+    .single();
+  if (error) throw error;
+  return data;
+};
 /**
  * This function adds the timezone information to dates gotten from a recurring event. By default the dates don't have a timezone.
  */
