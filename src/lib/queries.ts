@@ -2,7 +2,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { toZonedTime } from 'date-fns-tz';
 import ical from 'node-ical';
-import { Database } from './supabase-types';
+import { Database } from '../../supabase-types';
 
 
 // Create the typed Supabase client
@@ -254,6 +254,7 @@ export const createMeeting = async (
   studentId: Meeting['student_id'],
   startTime: Meeting['start_time'],
   endTime: Meeting['end_time'],
+  meetingUrl: Meeting['meeting_url'],
 ): Promise<Meeting> => {
   const { data, error } = await supabase
     .from('meetings')
@@ -262,6 +263,7 @@ export const createMeeting = async (
       student_id: studentId,
       start_time: startTime,
       end_time: endTime,
+      meeting_url: meetingUrl,
     })
     .select()
     .single();
