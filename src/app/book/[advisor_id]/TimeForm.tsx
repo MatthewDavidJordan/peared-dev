@@ -80,7 +80,7 @@ export default function TimeForm({
 function TimeSlot({ date, ...props }: { date: Date } & ButtonProps) {
   const startTimeString = useMemo(
     () =>
-      date.toLocaleTimeString(navigator.language, {
+      date.toLocaleTimeString([], {
         hour: 'numeric',
         minute: '2-digit',
       }),
@@ -89,13 +89,10 @@ function TimeSlot({ date, ...props }: { date: Date } & ButtonProps) {
 
   const endTimeString = useMemo(
     () =>
-      new Date(date.getTime() + DEFAULT_MEETING_DURATION_MS).toLocaleTimeString(
-        navigator.language,
-        {
-          hour: 'numeric',
-          minute: '2-digit',
-        },
-      ),
+      new Date(date.getTime() + DEFAULT_MEETING_DURATION_MS).toLocaleTimeString([], {
+        hour: 'numeric',
+        minute: '2-digit',
+      }),
     [date],
   );
   return (
