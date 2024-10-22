@@ -4,6 +4,7 @@ import { toZonedTime } from 'date-fns-tz';
 import ical from 'node-ical';
 import { Database } from './supabase-types';
 
+
 // Create the typed Supabase client
 export const supabase: SupabaseClient<Database> = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,7 +13,7 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
 
 const adminSupabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABSE_SERVICE_ROLE_KEY!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
 // Type definitions for custom tables
