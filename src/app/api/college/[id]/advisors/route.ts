@@ -1,10 +1,10 @@
 //college/[id]/advisors/route.ts
-import { Advisor, getAdvisorsForCollege } from '@/lib/queries';
+import { getAdvisorsForCollege } from '@/lib/queries';
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    const advisors: Advisor[] = await getAdvisorsForCollege(Number(params.id));
+    const advisors = await getAdvisorsForCollege(Number(params.id));
     return NextResponse.json(advisors, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {

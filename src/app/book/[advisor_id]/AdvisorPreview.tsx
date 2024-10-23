@@ -1,14 +1,16 @@
 'use client';
 import { DEFAULT_MEETING_DURATION_MS, FALLBACK_IMAGE } from '@/lib/consts';
-import { type getAdvisorById } from '@/lib/queries';
+import { type getAdvisorById, type getCollegeById } from '@/lib/queries';
 import { Clock, Globe, Undo2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function AdvisorPreview({
   advisor,
+  school,
 }: {
   advisor: Awaited<ReturnType<typeof getAdvisorById>>;
+  school: Awaited<ReturnType<typeof getCollegeById>>;
 }) {
   const meetingLengthMinString = Math.round(DEFAULT_MEETING_DURATION_MS / 1000 / 60).toString();
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -28,7 +30,7 @@ export default function AdvisorPreview({
           className="flex items-center gap-1 font-extrabold text-blue-900 underline"
         >
           <Undo2 className="size-4 [&_*]:stroke-[3]" />
-          {advisor.school_name}
+          {school.school_name}
         </Link>
         <p className="text-sm font-light text-zinc-600">{advisor.bio}</p>
         <AdvisorLabels advisor_labels={advisor.advisor_labels} />

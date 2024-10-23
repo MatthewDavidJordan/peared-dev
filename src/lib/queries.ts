@@ -4,7 +4,6 @@ import { toZonedTime } from 'date-fns-tz';
 import ical from 'node-ical';
 import { Database } from '../../supabase-types';
 
-
 // Create the typed Supabase client
 export const supabase: SupabaseClient<Database> = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,7 +39,7 @@ export const signUp = async (email: string, name: string): Promise<AuthUser> => 
   });
 
   return { user_id: data.user!.id, email: data.user!.email! };
-}
+};
 
 export const createStudent = async (user_id: string): Promise<Student> => {
   const { data, error } = await supabase.from('students').insert({ user_id }).select().single();
@@ -48,11 +47,19 @@ export const createStudent = async (user_id: string): Promise<Student> => {
   return data;
 };
 
-export const createAdvisor = async (user_id: string, school_id: number, advisor_name: string): Promise<Advisor> => {
-  const { data, error } = await supabase.from('advisors').insert({ user_id, school_id, advisor_name: advisor_name }).select().single();
+export const createAdvisor = async (
+  user_id: string,
+  school_id: number,
+  advisor_name: string,
+): Promise<Advisor> => {
+  const { data, error } = await supabase
+    .from('advisors')
+    .insert({ user_id, school_id, advisor_name: advisor_name })
+    .select()
+    .single();
   if (error) throw error;
   return data;
-}
+};
 
 export const getUserById = async (userId: AuthUser['user_id']): Promise<AuthUser> => {
   const { data, error } = await supabase.auth.getUser(userId.toString());
@@ -65,10 +72,26 @@ export const getUserById = async (userId: AuthUser['user_id']): Promise<AuthUser
   return { user_id: data.user.id, email: data.user.email };
 };
 
-export const getAdvisorById = async (advisorId: Advisor['advisor_id']): Promise<Advisor> => {
+export const getAdvisorById = async (advisorId: Advisor['advisor_id']) => {
   const { data, error } = await supabase
     .from('advisors')
-    .select("*")
+    .select(
+      `advisor_id,
+      user_id,
+      school_id,
+      payment_info_id,
+      bio,
+      advisor_name,
+      advisor_image,
+      ical_link,
+      advisor_labels (
+        labels (
+          label_id,
+          label_name,
+          category_name
+        )
+      )`,
+    )
     .eq('advisor_id', advisorId)
     .single();
   if (error) throw error;
@@ -83,7 +106,7 @@ export const getStudentById = async (studentId: Student['student_id']): Promise<
     .single();
   if (error) throw error;
   return data;
-}
+};
 
 // ------------------------------------------------
 
@@ -112,7 +135,6 @@ export const getAdvisorsForCollege = async (collegeId: College['school_id']) => 
       `advisor_id,
       user_id,
       school_id,
-      availability_id,
       payment_info_id,
       bio,
       advisor_name,
@@ -144,7 +166,9 @@ const resolveRecurrenceTimes = (event: ical.VEvent, dates: Date[]) => {
   });
 };
 
-export async function getAdvisorAvailability(advisorId: Advisor['advisor_id']): Promise<AvailabilityEvent[]> {
+export async function getAdvisorAvailability(
+  advisorId: Advisor['advisor_id'],
+): Promise<AvailabilityEvent[]> {
   const { data: advisor } = await supabase
     .from('advisors')
     .select('advisor_id, ical_link')
@@ -165,7 +189,6 @@ export async function getAdvisorAvailability(advisorId: Advisor['advisor_id']): 
     if (event.type !== 'VEVENT') return;
 
     if (event.rrule) {
-
       const dates = event.rrule.between(now, twoWeeksAhead, true);
 
       resolveRecurrenceTimes(event, dates).forEach((date) => {
@@ -238,7 +261,10 @@ export const getAdvisorIcalLinkById = async (advisorId: Advisor['advisor_id']): 
   return data.ical_link;
 };
 
-export const updateAdvisorIcalLinkById = async (advisorId: Advisor['advisor_id'], ical_link: string): Promise<void> => {
+export const updateAdvisorIcalLinkById = async (
+  advisorId: Advisor['advisor_id'],
+  ical_link: string,
+): Promise<void> => {
   const { error } = await supabase
     .from('advisors')
     .update({ ical_link })
@@ -246,4 +272,4 @@ export const updateAdvisorIcalLinkById = async (advisorId: Advisor['advisor_id']
     .select('*');
   if (error) throw error;
   return;
-}
+};
