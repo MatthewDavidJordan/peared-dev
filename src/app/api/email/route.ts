@@ -37,7 +37,7 @@ export async function POST(req: Request) {
         htmlContent = `
           <p>Dear ${data.studentName},</p>
           <p>You have scheduled a meeting with ${data.advisorName} on ${data.formattedStartTime}.</p>
-          <p>Best regards,<br/>Your Company</p>
+          <p>Best regards,<br/>PearED</p>
         `;
         break;
 
