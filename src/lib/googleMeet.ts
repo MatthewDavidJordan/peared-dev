@@ -3,8 +3,8 @@ import { google } from 'googleapis';
 import axios from 'axios';
 
 export const oauth2Client = new google.auth.OAuth2(
-  "52346834054-ua7asl8bdfnoa41jqapr0s62mdsvjsnd.apps.googleusercontent.com",
-  "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",
+  process.env.CLIENT_ID,
+  process.env.CLIENT_SECRET,
   "peared.org"
 );
 
