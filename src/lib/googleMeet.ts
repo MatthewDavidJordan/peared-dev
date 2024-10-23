@@ -1,43 +1,50 @@
-// lib/googleMeet.ts
-import { google } from 'googleapis';
-import axios from 'axios';
+import { google } from "googleapis";
 
-export const oauth2Client = new google.auth.OAuth2(
+// Define the OAuth2 client with the admin credentials
+const oauth2Client = new google.auth.OAuth2(
   process.env.CLIENT_ID,
   process.env.CLIENT_SECRET,
-  "peared.org"
 );
 
-export async function getAuthUrl() {
-  const scopes = ['https://www.googleapis.com/auth/calendar.events'];
-  const authUrl = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: scopes,
-  });
-  return authUrl;
-}
-
-export async function getAccessToken(code: string) {
-  const { tokens } = await oauth2Client.getToken(code);
-  oauth2Client.setCredentials(tokens);
-  return tokens.access_token;
-}
-
-export async function createGoogleMeet() {
+export default async function createGoogleMeetWithParticipants(startTime: string, endTime: string, advisorEmail: string, studentEmail: string): Promise<string> {
   try {
-    const response = await axios.post(
-      'https://meet.googleapis.com/v1/meetings',
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${oauth2Client.credentials.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
-    return response.data.joinUri;
-  } catch (error: unknown) {
-    throw new Error('Failed to create Google Meet: ' + error);
+    // Define the event
+    const event = {
+      summary: 'Advisory Meeting',
+      start: {
+        dateTime: startTime,
+        timeZone: 'America/New_York',
+      },
+      end: {
+        dateTime: endTime,
+        timeZone: 'America/New_York',
+      },
+      attendees: [
+        { email: advisorEmail },
+        { email: studentEmail },
+        { email: process.env.ADMIN_EMAIL },
+      ],
+      conferenceData: {
+        createRequest: {
+          requestId: `meet-${Date.now()}`,
+          conferenceSolutionKey: {
+            type: 'hangoutsMeet',
+          },
+        },
+      },
+    };
+
+    const response = await calendar.events.insert({
+      calendarId: 'primary',
+      conferenceDataVersion: 1,
+      requestBody: event,
+    });
+
+    return response.data.hangoutLink!;
+  } catch (error) {
+    console.error('Error creating Google Meet:', error);
+    throw new Error('Failed to create Google Meet');
   }
 }

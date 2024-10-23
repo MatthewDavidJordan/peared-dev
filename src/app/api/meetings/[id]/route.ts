@@ -4,9 +4,9 @@ import { getMeetingById, getAdvisorById, Meeting, Advisor } from '@/lib/queries'
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    const meeting: Meeting | null = await getMeetingById(Number(params.id));
+    const meeting: Meeting = await getMeetingById(Number(params.id));
 
-    const advisor: Advisor | null = await getAdvisorById(meeting!.advisor_id!);
+    const advisor: Advisor = await getAdvisorById(meeting.advisor_id!);
 
     return NextResponse.json({ meeting, advisor }, { status: 200 });
   } catch (error) {

@@ -1,7 +1,7 @@
-import { createMeeting, Meeting } from '@/lib/queries';
+import { createMeeting, Meeting, getUserById, AuthUser, getAdvisorById, Advisor, getStudentById, Student } from '@/lib/queries';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createGoogleMeet } from '@/lib/googleMeet';
+import createGoogleMeetWithParticipants from '@/lib/googleMeet';
 
 const CreateMeetingSchema = z.object({
   advisor_id: z.number(),
@@ -9,8 +9,6 @@ const CreateMeetingSchema = z.object({
   start_time: z.string(),
   end_time: z.string(),
 });
-
-export type CreateMeetingRequest = z.infer<typeof CreateMeetingSchema>;
 
 export async function POST(req: Request) {
   try {
@@ -26,14 +24,23 @@ export async function POST(req: Request) {
 
     const { advisor_id, student_id, start_time, end_time } = validatedData.data;
 
-    const meetingUrl = await createGoogleMeet();
+    const advisor: Advisor = await getAdvisorById(advisor_id);
+    const student: Student = await getStudentById(student_id);
 
-    const meeting: Meeting | null = await createMeeting(
+    const advisorUser: AuthUser = await getUserById(advisor.user_id);
+    const studentUser: AuthUser = await getUserById(student.user_id);
+
+    const advisorEmail: string = advisorUser.email;
+    const studentEmail: string = studentUser.email;
+
+    //const meetingUrl: string = await createGoogleMeetWithParticipants(start_time, end_time, advisorEmail, studentEmail);
+
+    const meeting: Meeting = await createMeeting(
       advisor_id,
       student_id,
       start_time,
       end_time,
-      meetingUrl
+      null,
     );
 
     return NextResponse.json(meeting, { status: 200 });
