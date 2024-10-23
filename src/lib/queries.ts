@@ -65,41 +65,14 @@ export const getUserById = async (userId: AuthUser['user_id']): Promise<AuthUser
   return { user_id: data.user.id, email: data.user.email };
 };
 
-export const getAdvisorById = async (advisorId: Advisor['advisor_id']) => {
-  const { data: advisorData, error: advisorError } = await supabase
+export const getAdvisorById = async (advisorId: Advisor['advisor_id']): Promise<Advisor> => {
+  const { data, error } = await supabase
     .from('advisors')
-    .select(
-      `
-      advisor_id,
-      user_id,
-      school_id,
-      availability_id,
-      payment_info_id,
-      bio,
-      advisor_name,
-      advisor_image,
-      ical_link,
-      advisor_labels (
-        labels (
-          label_id,
-          label_name,
-          category_name
-        )
-      )
-      `,
-    )
+    .select("*")
     .eq('advisor_id', advisorId)
     .single();
-  if (advisorError) throw advisorError;
-
-  const { data: schoolData, error: schoolError } = await supabase
-    .from('schools')
-    .select('*')
-    .eq('school_id', advisorData.school_id)
-    .single();
-  if (schoolError) throw schoolError;
-
-  return { ...advisorData, ...schoolData };
+  if (error) throw error;
+  return data;
 };
 
 export const getStudentById = async (studentId: Student['student_id']): Promise<Student> => {
