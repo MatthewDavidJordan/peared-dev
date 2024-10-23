@@ -47,7 +47,6 @@ export type Database = {
           advisor_id: number
           advisor_image: string | null
           advisor_name: string
-          availability_id: number | null
           bio: string | null
           ical_link: string | null
           payment_info_id: number | null
@@ -58,7 +57,6 @@ export type Database = {
           advisor_id?: number
           advisor_image?: string | null
           advisor_name: string
-          availability_id?: number | null
           bio?: string | null
           ical_link?: string | null
           payment_info_id?: number | null
@@ -69,7 +67,6 @@ export type Database = {
           advisor_id?: number
           advisor_image?: string | null
           advisor_name?: string
-          availability_id?: number | null
           bio?: string | null
           ical_link?: string | null
           payment_info_id?: number | null
@@ -77,53 +74,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      availability: {
-        Row: {
-          advisor_id: number | null
-          availability_id: number
-          conflicts: Json | null
-          default_friday_schedule: Json | null
-          default_monday_schedule: Json | null
-          default_saturday_schedule: Json | null
-          default_sunday_schedule: Json | null
-          default_thursday_schedule: Json | null
-          default_tuesday_schedule: Json | null
-          default_wednesday_schedule: Json | null
-        }
-        Insert: {
-          advisor_id?: number | null
-          availability_id?: number
-          conflicts?: Json | null
-          default_friday_schedule?: Json | null
-          default_monday_schedule?: Json | null
-          default_saturday_schedule?: Json | null
-          default_sunday_schedule?: Json | null
-          default_thursday_schedule?: Json | null
-          default_tuesday_schedule?: Json | null
-          default_wednesday_schedule?: Json | null
-        }
-        Update: {
-          advisor_id?: number | null
-          availability_id?: number
-          conflicts?: Json | null
-          default_friday_schedule?: Json | null
-          default_monday_schedule?: Json | null
-          default_saturday_schedule?: Json | null
-          default_sunday_schedule?: Json | null
-          default_thursday_schedule?: Json | null
-          default_tuesday_schedule?: Json | null
-          default_wednesday_schedule?: Json | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "availability_advisor_id_fkey"
-            columns: ["advisor_id"]
-            isOneToOne: false
-            referencedRelation: "advisors"
-            referencedColumns: ["advisor_id"]
-          },
-        ]
       }
       billing_info: {
         Row: {
@@ -268,24 +218,6 @@ export type Database = {
             referencedColumns: ["advisor_id"]
           },
         ]
-      }
-      profiles: {
-        Row: {
-          email: string
-          id: string
-          name: string | null
-        }
-        Insert: {
-          email?: string
-          id: string
-          name?: string | null
-        }
-        Update: {
-          email?: string
-          id?: string
-          name?: string | null
-        }
-        Relationships: []
       }
       ratings: {
         Row: {
