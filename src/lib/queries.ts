@@ -1,6 +1,6 @@
 //src/lib/queries.ts
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { toZonedTime } from 'date-fns-tz';
+import { getTimezoneOffset } from 'date-fns-tz';
 import ical from 'node-ical';
 import { Database } from '../../supabase-types';
 
@@ -155,11 +155,14 @@ export const getAdvisorsForCollege = async (collegeId: College['school_id']) => 
 
 const resolveRecurrenceTimes = (event: ical.VEvent, dates: Date[]) => {
   return dates.map((date) => {
+    console.log(date.getTime());
+
     if (!event.rrule) throw new Error("Event doesn't have a recurrence rule");
 
     const tzId = event.rrule.origOptions.tzid;
     if (tzId) {
-      return toZonedTime(toZonedTime(date, 'UTC'), tzId);
+      const offset = getTimezoneOffset(tzId, date);
+      return new Date(date.getTime() - offset);
     } else {
       throw new Error('Timezone not provided');
     }
