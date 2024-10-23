@@ -67,7 +67,7 @@ export default function TimeForm({
             {new Intl.DateTimeFormat('en-US', { day: '2-digit' }).format(selectedDate)}
           </span>
         </p>
-        <div className="flex h-full min-h-0 flex-grow-0 flex-col gap-2 overflow-scroll">
+        <div className="flex h-full min-h-0 flex-grow-0 flex-col gap-2 overflow-y-scroll">
           {selectedDayTimes.map((date, i) => (
             <TimeSlot key={i} date={date} onClick={() => setSelectedTime(date)} />
           ))}

@@ -29,7 +29,7 @@ function RequiredFieldError() {
 async function createUser(email: string, name: string) {
   const res = await fetch('/api/users', {
     method: 'POST',
-    body: JSON.stringify({ email, name: !!name ? name : undefined } satisfies CreateUserRequest),
+    body: JSON.stringify({ email, name } satisfies CreateUserRequest),
   });
   const data: { user: AuthResponse; student: Student } = await res.json();
   return data;
@@ -67,7 +67,7 @@ export default function SignUpForm({
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
 
-  const canConfirm = selectedTime && isEmailValid(email);
+  const canConfirm = selectedTime && isEmailValid(email) && name.length > 0;
   const [showRequiredFieldErrors, setShowRequiredFieldErrors] = useState(false);
 
   const confirm = useCallback(async () => {
@@ -102,10 +102,11 @@ export default function SignUpForm({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          {!!showRequiredFieldErrors && <RequiredFieldError />}
+          {!!showRequiredFieldErrors && !isEmailValid(email) && <RequiredFieldError />}
         </Labelled>
-        <Labelled label="Name">
+        <Labelled label="Name *">
           <Input placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} />
+          {!!showRequiredFieldErrors && name.length === 0 && <RequiredFieldError />}
         </Labelled>
         <div className="flex-1" />
         <p className="self-end text-xs font-light text-zinc-500">
