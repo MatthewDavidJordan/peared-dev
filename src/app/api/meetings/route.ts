@@ -1,7 +1,7 @@
-//meeting/routes.ts
 import { createMeeting, Meeting } from '@/lib/queries';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { createGoogleMeet } from '@/lib/googleMeet';
 
 const CreateMeetingSchema = z.object({
   advisor_id: z.number(),
@@ -26,11 +26,14 @@ export async function POST(req: Request) {
 
     const { advisor_id, student_id, start_time, end_time } = validatedData.data;
 
+    const meetingUrl = await createGoogleMeet();
+
     const meeting: Meeting | null = await createMeeting(
       advisor_id,
       student_id,
       start_time,
       end_time,
+      meetingUrl
     );
 
     return NextResponse.json(meeting, { status: 200 });

@@ -202,6 +202,7 @@ export type Database = {
           created_at: string | null
           end_time: string
           meeting_id: number
+          meeting_url: string | null
           start_time: string
           student_id: number | null
         }
@@ -211,6 +212,7 @@ export type Database = {
           created_at?: string | null
           end_time: string
           meeting_id?: number
+          meeting_url?: string | null
           start_time: string
           student_id?: number | null
         }
@@ -220,6 +222,7 @@ export type Database = {
           created_at?: string | null
           end_time?: string
           meeting_id?: number
+          meeting_url?: string | null
           start_time?: string
           student_id?: number | null
         }
