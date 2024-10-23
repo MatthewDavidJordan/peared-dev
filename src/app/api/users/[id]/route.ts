@@ -4,7 +4,7 @@ import { AuthUser, getUserById } from '@/lib/queries';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    const user: AuthUser | null = await getUserById(params.id);
+    const user: AuthUser = await getUserById(params.id);
     return NextResponse.json(user, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {

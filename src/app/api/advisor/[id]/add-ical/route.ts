@@ -1,6 +1,5 @@
-// api/advisor/[id]/add-ical/routes.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/queries';
+import { supabase, updateAdvisorIcalLinkById } from '@/lib/queries';
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -11,22 +10,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: 'iCal link is required' }, { status: 400 });
     }
 
-    // Update the iCal link in the advisors table
-    const { data, error } = await supabase
-      .from('advisors')
-      .update({ ical_link })
-      .eq('advisor_id', Number(params.id))
-      .select('*');
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    updateAdvisorIcalLinkById(Number(params.id), ical_link);
 
     return NextResponse.json({ success: 'iCal link updated successfully' }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: 'Something went wrong', details: error.message },
-      { status: 500 },
-    );
+  } catch (error) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
   }
 }
