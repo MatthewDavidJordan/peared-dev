@@ -95,6 +95,8 @@ function TimeSlot({ date, ...props }: { date: Date } & ButtonProps) {
       }),
     [date],
   );
+  console.log(date.getTime());
+
   return (
     <Button variant="outline" className="min-w-32" {...props}>
       {startTimeString}{' '}
