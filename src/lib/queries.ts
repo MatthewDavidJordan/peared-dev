@@ -1,5 +1,5 @@
 //src/lib/queries.ts
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import { getTimezoneOffset } from 'date-fns-tz';
 import ical from 'node-ical';
 import { Database } from '../../supabase-types';
@@ -33,12 +33,25 @@ export type AvailabilityEvent = {
 // -------------------- USER RELATED ----------------------------
 
 export const signUp = async (email: string, name: string): Promise<AuthUser> => {
-  const { data } = await adminSupabase.auth.admin.createUser({
+  let { error } = await adminSupabase.auth.signInWithOtp({
     email,
-    user_metadata: { name },
   });
 
-  return { user_id: data.user!.id, email: data.user!.email! };
+  if (error) {
+    const { data: createUserData, error: createUserError } = await adminSupabase.auth.admin.createUser({
+      email,
+      user_metadata: { name },
+    });
+
+    if (createUserError) {
+      throw createUserError;
+    }
+    return { user_id: createUserData.user.id, email: createUserData.user.email! };
+  }
+
+  const { data } = await supabase.auth.getSession();
+
+  return { user_id: data.session!.user.id, email: data.session!.user.email! };
 };
 
 export const createStudent = async (user_id: string): Promise<Student> => {
@@ -62,7 +75,7 @@ export const createAdvisor = async (
 };
 
 export const getUserById = async (userId: AuthUser['user_id']): Promise<AuthUser> => {
-  const { data, error } = await supabase.auth.getUser(userId.toString());
+  const { data, error } = await supabase.auth.getUser(userId);
   if (error) throw error;
 
   if (!data?.user || !data.user.email) {
