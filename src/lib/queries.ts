@@ -33,31 +33,33 @@ export type AvailabilityEvent = {
 // -------------------- USER RELATED ----------------------------
 
 export const signUp = async (email: string, name: string): Promise<AuthUser> => {
-  let { error } = await adminSupabase.auth.signInWithOtp({
-    email,
-  });
-
-  if (error) {
-    const { data: createUserData, error: createUserError } = await adminSupabase.auth.admin.createUser({
-      email,
-      user_metadata: { name },
-    });
-
-    if (createUserError) {
-      throw createUserError;
-    }
-    return { user_id: createUserData.user.id, email: createUserData.user.email! };
-  }
-
   try {
-    const { data } = await supabase.auth.getSession();
+    // Check if there's an active session
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
 
-    return { user_id: data.session!.user.id, email: data.session!.user.email! };
+    if (sessionData?.session) {
+      // Return session details if a session is active
+      return {
+        user_id: sessionData.session.user.id,
+        email: sessionData.session.user.email!,
+      };
+    }
+
+    // If no session, send OTP to sign in
+    const { error: otpError } = await supabase.auth.signInWithOtp({ email });
+    if (otpError) throw otpError;
+
+    throw new Error('OTP sent to email');
+
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error('Sign-up/in failed: Unknown error');
+    }
   }
-  catch (error) {
-    throw error;
-  }
-};
+}
 
 export const createStudent = async (user_id: string): Promise<Student> => {
   const { data, error } = await supabase.from('students').insert({ user_id }).select().single();
