@@ -49,9 +49,14 @@ export const signUp = async (email: string, name: string): Promise<AuthUser> => 
     return { user_id: createUserData.user.id, email: createUserData.user.email! };
   }
 
-  const { data } = await supabase.auth.getSession();
+  try {
+    const { data } = await supabase.auth.getSession();
 
-  return { user_id: data.session!.user.id, email: data.session!.user.email! };
+    return { user_id: data.session!.user.id, email: data.session!.user.email! };
+  }
+  catch (error) {
+    throw error;
+  }
 };
 
 export const createStudent = async (user_id: string): Promise<Student> => {
