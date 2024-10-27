@@ -1,11 +1,11 @@
 //users/routes.ts
-import { createStudent, signUp } from '@/lib/queries';
+import { AuthUser, createStudent, signUp, Student } from '@/lib/queries';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 const CreateUserSchema = z.object({
   email: z.string().email(),
-  name: z.string().optional(),
+  name: z.string().min(1),
 });
 
 export type CreateUserRequest = z.infer<typeof CreateUserSchema>;
@@ -15,6 +15,7 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     const validatedData = CreateUserSchema.safeParse(body);
+
     if (!validatedData.success) {
       return NextResponse.json(
         { error: 'Invalid input', details: validatedData.error.format() },
@@ -24,10 +25,10 @@ export async function POST(req: Request) {
 
     const { email, name } = validatedData.data;
 
-    const user = await signUp(email, name);
+    const user: AuthUser = await signUp(email, name);
     if (!user) return NextResponse.json({ error: 'Error creating user' }, { status: 500 });
 
-    const student = await createStudent(user.id);
+    const student: Student = await createStudent(user.user_id);
 
     return NextResponse.json({ user, student }, { status: 200 });
   } catch (error) {
