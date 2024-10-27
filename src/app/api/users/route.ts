@@ -6,6 +6,7 @@ import { z } from 'zod';
 const CreateUserSchema = z.object({
   email: z.string().email(),
   name: z.string().min(1),
+  url: z.string().min(1),
 });
 
 export type CreateUserRequest = z.infer<typeof CreateUserSchema>;
@@ -23,9 +24,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const { email, name } = validatedData.data;
+    const { email, name, url } = validatedData.data;
 
-    const user: AuthUser = await signUp(email, name);
+    const user: AuthUser = await signUp(email, name, url);
     if (!user) return NextResponse.json({ error: 'Error creating user' }, { status: 500 });
 
     const student: Student = await createStudent(user.user_id);

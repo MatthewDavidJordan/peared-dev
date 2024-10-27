@@ -32,7 +32,7 @@ export type AvailabilityEvent = {
 
 // -------------------- USER RELATED ----------------------------
 
-export const signUp = async (email: string, name: string): Promise<AuthUser> => {
+export const signUp = async (email: string, name: string, url: string): Promise<AuthUser> => {
   try {
     // Check if there's an active session
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -47,11 +47,15 @@ export const signUp = async (email: string, name: string): Promise<AuthUser> => 
     }
 
     // If no session, send OTP to sign in
-    const { error: otpError } = await supabase.auth.signInWithOtp({ email });
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: email,
+      options: {
+        emailRedirectTo: url,
+      },
+    });
     if (otpError) throw otpError;
 
     throw new Error('OTP sent to email');
-
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(error.message);
@@ -59,7 +63,7 @@ export const signUp = async (email: string, name: string): Promise<AuthUser> => 
       throw new Error('Sign-up/in failed: Unknown error');
     }
   }
-}
+};
 
 export const createStudent = async (user_id: string): Promise<Student> => {
   const { data, error } = await supabase.from('students').insert({ user_id }).select().single();

@@ -26,10 +26,10 @@ function RequiredFieldError() {
   );
 }
 
-async function createUser(email: string, name: string) {
+async function createUser(email: string, name: string, url: string) {
   const res = await fetch('/api/users', {
     method: 'POST',
-    body: JSON.stringify({ email, name } satisfies CreateUserRequest),
+    body: JSON.stringify({ email, name, url } satisfies CreateUserRequest),
   });
   const data: { user: AuthResponse; student: Student } = await res.json();
   return data;
@@ -76,7 +76,8 @@ export default function SignUpForm({
     try {
       setIsLoading(true);
 
-      const { student } = await createUser(email, name);
+      const url = window.location.href;
+      const { student } = await createUser(email, name, url);
 
       const startTime = selectedTime.toISOString();
       const endTime = new Date(selectedTime.getTime() + DEFAULT_MEETING_DURATION_MS).toISOString();
