@@ -1,40 +1,30 @@
+// SignUpForm.tsx
 'use client';
-import type { CreateMeetingRequest } from '@/app/api/meetings/route';
-import type { CreateUserRequest } from '@/app/api/users/route';
+import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DEFAULT_MEETING_DURATION_MS } from '@/lib/consts';
 import { cn } from '@/lib/funcs';
-import { type Meeting, type Student } from '@/lib/queries';
-import type { Setter } from '@/lib/types';
-import type { AuthResponse } from '@supabase/supabase-js';
-import { Info, LoaderCircle } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useState, type ReactNode } from 'react';
 
 function isEmailValid(email: string) {
   return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g.test(email);
 }
 
 function RequiredFieldError() {
-  return (
-    <p className="flex items-center gap-1 text-sm text-red-600">
-      <Info className="size-3" />
-      This field is required{' '}
-    </p>
-  );
+  return <p className="flex items-center gap-1 text-sm text-red-600">This field is required</p>;
 }
 
-async function createUser(email: string, name: string, url: string) {
+// API call to request user creation or OTP verification
+async function createUser(email: string, name: string) {
   const res = await fetch('/api/users', {
     method: 'POST',
-    body: JSON.stringify({ email, name, url } satisfies CreateUserRequest),
+    body: JSON.stringify({ email, name }),
   });
-  const data: { user: AuthResponse; student: Student } = await res.json();
-  return data;
+  return res.json();
 }
 
+// API call to create a meeting
 async function createMeeting(
   advisor_id: number,
   student_id: number,
@@ -48,79 +38,79 @@ async function createMeeting(
       student_id,
       start_time,
       end_time,
-    } satisfies CreateMeetingRequest),
+    }),
   });
-  const data: Meeting = await res.json();
-  return data;
+  return res.json();
 }
 
 export default function SignUpForm({
   advisorId,
   selectedTime,
   setSelectedTime,
+  onOtpRequired,
 }: {
   advisorId: number;
   selectedTime: Date | null;
-  setSelectedTime: Setter<Date | null>;
+  setSelectedTime: (value: Date | null) => void;
+  onOtpRequired: (email: string) => void; // Update type to accept email
 }) {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
-
-  const canConfirm = selectedTime && isEmailValid(email) && name.length > 0;
+  const [isLoading, setIsLoading] = useState(false);
   const [showRequiredFieldErrors, setShowRequiredFieldErrors] = useState(false);
 
+  const canConfirm = selectedTime && isEmailValid(email) && name.length > 0;
+
   const confirm = useCallback(async () => {
-    if (!canConfirm) return setShowRequiredFieldErrors(true);
+    if (!canConfirm) {
+      return setShowRequiredFieldErrors(true);
+    }
 
     try {
       setIsLoading(true);
 
-      const url = window.location.href;
-      const { student } = await createUser(email, name, url);
+      const response = await createUser(email, name);
 
-      const startTime = selectedTime.toISOString();
-      const endTime = new Date(selectedTime.getTime() + DEFAULT_MEETING_DURATION_MS).toISOString();
+      if (response.otpSent) {
+        // Notify parent component (BookCard) that OTP is required
+        // log that we are calling onOtpRequired in SignUpForm.tsx
+        console.log('calling onOtpRequired in SignUpForm.tsx');
+        onOtpRequired(email); // Pass the email when OTP is required
+      } else if (response.user) {
+        // If user is already authenticated, create the meeting directly
+        const { student } = response;
+        const startTime = selectedTime.toISOString();
+        const endTime = new Date(
+          selectedTime.getTime() + DEFAULT_MEETING_DURATION_MS,
+        ).toISOString();
 
-      const meeting = await createMeeting(advisorId, student.student_id, startTime, endTime);
-
-      router.push(`/meeting/${meeting.meeting_id}`);
-    } catch (e) {
-      console.error(e);
+        const meeting = await createMeeting(advisorId, student.student_id, startTime, endTime);
+        router.push(`/meeting/${meeting.meeting_id}`);
+      }
+    } catch (error) {
+      console.error('Error creating user or meeting:', error);
       setIsLoading(false);
     }
-  }, [advisorId, canConfirm, email, name, router, selectedTime]);
-
-  const [isLoading, setIsLoading] = useState(false);
+  }, [advisorId, canConfirm, email, name, router, selectedTime, onOtpRequired]);
 
   return (
     <div className="lg:!h-96 lg:!w-96">
       <div className="flex h-full flex-col gap-4 px-5 py-4">
-        <Labelled label="Email *">
-          <Input
-            placeholder="example@example.com"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          {!!showRequiredFieldErrors && !isEmailValid(email) && <RequiredFieldError />}
-        </Labelled>
-        <Labelled label="Name *">
-          <Input placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} />
-          {!!showRequiredFieldErrors && name.length === 0 && <RequiredFieldError />}
-        </Labelled>
-        <div className="flex-1" />
-        <p className="self-end text-xs font-light text-zinc-500">
-          By proceeding you agree to our{' '}
-          <Link href="/tos" className="underline">
-            Terms
-          </Link>{' '}
-          and{' '}
-          <Link href="/privacy-policy" className="underline">
-            Privacy Policy
-          </Link>
-        </p>
-        <div className="flex justify-end gap-2">
+        <label>Email *</label>
+        <Input
+          placeholder="example@example.com"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        {!!showRequiredFieldErrors && !isEmailValid(email) && <RequiredFieldError />}
+
+        <label>Name *</label>
+        <Input placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} />
+        {!!showRequiredFieldErrors && name.length === 0 && <RequiredFieldError />}
+
+        <div className="mt-4 flex justify-end gap-2">
           <Button variant="outline" onClick={() => setSelectedTime(null)} disabled={isLoading}>
             Back
           </Button>
@@ -130,22 +120,10 @@ export default function SignUpForm({
             disabled={isLoading}
             variant="primaryToAccent"
           >
-            <span className={cn(isLoading && 'invisible')}>Confirm</span>
-            {isLoading && (
-              <LoaderCircle className="absolute left-auto right-auto size-4 animate-spin" />
-            )}
+            Confirm
           </Button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function Labelled({ label, children }: { label: ReactNode; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <p className="text-sm font-semibold">{label}</p>
-      {children}
     </div>
   );
 }

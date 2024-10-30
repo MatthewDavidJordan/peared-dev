@@ -32,30 +32,42 @@ export type AvailabilityEvent = {
 
 // -------------------- USER RELATED ----------------------------
 
-export const signUp = async (email: string, name: string, url: string): Promise<AuthUser> => {
+// should only be called when we know a session exists
+export const getAuthUserFromActiveSession = async (): Promise<AuthUser> => {
+  // Check if there's an active session
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+
+  if (sessionData?.session) {
+    // Return session details if a session is active
+    return {
+      user_id: sessionData.session.user.id,
+      email: sessionData.session.user.email!,
+    };
+  }
+
+  // Throw an error if no session is found
+  throw new Error('No active session found');
+};
+
+// figures out if there is an existing session, if not sends an OTP
+export const signUpAndSignIn = async (email: string): Promise<boolean> => {
   try {
     // Check if there's an active session
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError) throw sessionError;
 
     if (sessionData?.session) {
-      // Return session details if a session is active
-      return {
-        user_id: sessionData.session.user.id,
-        email: sessionData.session.user.email!,
-      };
+      // If a session is active, no OTP is needed
+      return true;
     }
 
     // If no session, send OTP to sign in
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: email,
-      options: {
-        emailRedirectTo: url,
-      },
-    });
+    const { error: otpError } = await supabase.auth.signInWithOtp({ email });
     if (otpError) throw otpError;
 
-    throw new Error('OTP sent to email');
+    // OTP sent, so return false indicating OTP verification is required
+    return false;
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(error.message);
@@ -63,6 +75,32 @@ export const signUp = async (email: string, name: string, url: string): Promise<
       throw new Error('Sign-up/in failed: Unknown error');
     }
   }
+};
+
+// verify the OTP and create a student record if the email hasn't been used before
+export const verifyUserOtp = async (
+  email: string,
+  otp: string,
+): Promise<{ user: AuthUser; student: Student } | null> => {
+  // Verify the OTP
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token: otp,
+    type: 'email',
+  });
+
+  if (error) {
+    console.error('OTP verification failed:', error.message);
+    return null;
+  }
+
+  const user = data.user;
+
+  // Create student record after successful OTP verification
+  const student = await createStudent(user.id);
+
+  // Return the user and student data
+  return { user, student };
 };
 
 export const createStudent = async (user_id: string): Promise<Student> => {
