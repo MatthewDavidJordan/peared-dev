@@ -89,10 +89,10 @@ export const verifyUserOtp = async (
     return null;
   }
 
-  const user = data.user;
+  const user: User | null = data.user;
 
   // Create student record after successful OTP verification
-  const student = await createStudent(user!.id);
+  const student: Student = await createStudent(user!.id);
 
   // Return the user and student data
   return { user: { user_id: user!.id, email: user!.email! }, student: student };
