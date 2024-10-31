@@ -10,11 +10,6 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
 export type Advisor = Database['public']['Tables']['advisors']['Row'];
 export type Meeting = Database['public']['Tables']['meetings']['Row'];
 export type College = Database['public']['Tables']['schools']['Row'];
@@ -97,10 +92,10 @@ export const verifyUserOtp = async (
   const user = data.user;
 
   // Create student record after successful OTP verification
-  const student = await createStudent(user.id);
+  const student = await createStudent(user!.id);
 
   // Return the user and student data
-  return { user, student };
+  return { user: { user_id: user!.id, email: user!.email! }, student: student };
 };
 
 export const createStudent = async (user_id: string): Promise<Student> => {
