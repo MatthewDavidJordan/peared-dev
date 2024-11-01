@@ -30,14 +30,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'OTP verification failed' }, { status: 400 });
     }
 
-    // try to create a student with the user_id
-    const student = await createStudent(result.user.user_id);
-    if (!student) {
-      return NextResponse.json({ error: 'Error creating student' }, { status: 500 });
-    }
-
-    // add the student data to the result
-    result.student = student;
+    console.log(result.user.email, result.user.user_id);
 
     // Return the user and student data on successful verification
     return NextResponse.json(result, { status: 200 });

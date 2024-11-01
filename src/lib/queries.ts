@@ -73,11 +73,11 @@ export const signUpAndSignIn = async (email: string): Promise<boolean> => {
   }
 };
 
-// verify the OTP and create a student record if the email hasn't been used before
+// verify the OTP
 export const verifyUserOtp = async (
   email: string,
   otp: string,
-): Promise<{ user: AuthUser; student: Student } | null> => {
+): Promise<{ user: AuthUser } | null> => {
   // Verify the OTP
   const { data, error } = await supabase.auth.verifyOtp({
     email,
@@ -92,11 +92,10 @@ export const verifyUserOtp = async (
 
   const user: User = data.user!;
 
-  // Create student record after successful OTP verification
-  const student: Student = await createStudent(user.id);
+  console.log('OTP verified successfully:', user.email, user.id);
 
-  // Return the user and student data
-  return { user: { user_id: user.id, email: user.email! }, student: student };
+  // Return the user data
+  return { user: { user_id: user.id, email: user.email! } };
 };
 
 export const createStudent = async (user_id: string): Promise<Student> => {
@@ -164,6 +163,19 @@ export const getStudentById = async (studentId: Student['student_id']): Promise<
     .single();
   if (error) throw error;
   return data;
+};
+
+export const getStudentIdByUserId = async (user_id: string): Promise<Student> => {
+  const { data: student, error } = await supabase
+    .from('students')
+    .select('*')
+    .eq('user_id', user_id)
+    .single();
+
+  if (error) throw error;
+  if (!student?.student_id) throw new Error('Student not found');
+
+  return student;
 };
 
 // ------------------------------------------------
