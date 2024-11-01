@@ -50,6 +50,7 @@ export const signUpAndSignIn = async (email: string): Promise<boolean> => {
   try {
     // Check if there's an active session
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    console.log(sessionData);
     if (sessionError) throw sessionError;
 
     if (sessionData?.session) {
@@ -89,13 +90,13 @@ export const verifyUserOtp = async (
     return null;
   }
 
-  const user: User | null = data.user;
+  const user: User = data.user!;
 
   // Create student record after successful OTP verification
-  const student: Student = await createStudent(user!.id);
+  const student: Student = await createStudent(user.id);
 
   // Return the user and student data
-  return { user: { user_id: user!.id, email: user!.email! }, student: student };
+  return { user: { user_id: user.id, email: user.email! }, student: student };
 };
 
 export const createStudent = async (user_id: string): Promise<Student> => {
