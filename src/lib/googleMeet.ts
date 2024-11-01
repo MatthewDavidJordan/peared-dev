@@ -4,7 +4,13 @@ import { google } from "googleapis";
 const oauth2Client = new google.auth.OAuth2(
   process.env.CLIENT_ID,
   process.env.CLIENT_SECRET,
+  'urn:ietf:wg:oauth:2.0:oob'
 );
+
+// Set the refresh token
+oauth2Client.setCredentials({
+  refresh_token: process.env.REFRESH_TOKEN,
+});
 
 export default async function createGoogleMeetWithParticipants(startTime: string, endTime: string, advisorEmail: string, studentEmail: string): Promise<string> {
   try {
