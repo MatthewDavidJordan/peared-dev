@@ -45,35 +45,37 @@ export type Database = {
       advisors: {
         Row: {
           advisor_id: number
-          advisor_image: string | null
-          advisor_name: string
-          bio: string | null
-          ical_link: string | null
-          payment_info_id: number | null
+          advisor_image: string
+          bio: string
+          ical_link: string
+          profile_id: number
           school_id: number
-          user_id: string
         }
         Insert: {
           advisor_id?: number
-          advisor_image?: string | null
-          advisor_name: string
-          bio?: string | null
-          ical_link?: string | null
-          payment_info_id?: number | null
+          advisor_image: string
+          bio: string
+          ical_link: string
+          profile_id: number
           school_id: number
-          user_id: string
         }
         Update: {
           advisor_id?: number
-          advisor_image?: string | null
-          advisor_name?: string
-          bio?: string | null
-          ical_link?: string | null
-          payment_info_id?: number | null
+          advisor_image?: string
+          bio?: string
+          ical_link?: string
+          profile_id?: number
           school_id?: number
-          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "advisors_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       billing_info: {
         Row: {
@@ -219,6 +221,30 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          email: string
+          first_name: string
+          id: number
+          last_name: string
+          user_id: string
+        }
+        Insert: {
+          email: string
+          first_name: string
+          id?: number
+          last_name: string
+          user_id?: string
+        }
+        Update: {
+          email?: string
+          first_name?: string
+          id?: number
+          last_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ratings: {
         Row: {
           advisor_id: number | null
@@ -278,21 +304,26 @@ export type Database = {
       }
       students: {
         Row: {
-          billing_info_id: number | null
+          profile_id: number | null
           student_id: number
-          user_id: string
         }
         Insert: {
-          billing_info_id?: number | null
+          profile_id?: number | null
           student_id?: number
-          user_id: string
         }
         Update: {
-          billing_info_id?: number | null
+          profile_id?: number | null
           student_id?: number
-          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "students_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

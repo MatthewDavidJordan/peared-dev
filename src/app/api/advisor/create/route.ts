@@ -7,12 +7,23 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const user_id = body.user_id;
-    const name = body.name;
+    const email = body.email;
+    const first_name = body.first_name;
+    const last_name = body.last_name;
     const school_id = body.school_id;
+    const bio = body.bio;
+    const advisor_image = body.advisor_image;
+    const ical_link = body.ical_link;
 
-    // try to create a student with the user_id
-    const advisor = await createAdvisor(user_id, school_id, name);
+    const advisor = await createAdvisor(
+      email,
+      first_name,
+      last_name,
+      school_id,
+      bio,
+      advisor_image,
+      ical_link,
+    );
     if (!advisor) {
       return NextResponse.json({ error: 'Error creating student' }, { status: 500 });
     }

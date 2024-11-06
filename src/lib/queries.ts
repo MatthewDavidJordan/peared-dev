@@ -14,6 +14,7 @@ export type Advisor = Database['public']['Tables']['advisors']['Row'];
 export type Meeting = Database['public']['Tables']['meetings']['Row'];
 export type College = Database['public']['Tables']['schools']['Row'];
 export type Student = Database['public']['Tables']['students']['Row'];
+export type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export type AuthUser = {
   user_id: string;
@@ -45,24 +46,38 @@ export const getAuthUserFromActiveSession = async (): Promise<AuthUser> => {
   throw new Error('No active session found');
 };
 
-// figures out if there is an existing session, if not sends an OTP
-export const signUpAndSignIn = async (email: string): Promise<boolean> => {
+export const signUpAndSignIn = async (email: string): Promise<boolean | 'new'> => {
   try {
-    // Check if there's an active session
+    // Step 1: Check if there's an active session
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    console.log(sessionData);
     if (sessionError) throw sessionError;
 
     if (sessionData?.session) {
-      // If a session is active, no OTP is needed
+      // If a session is active, the user is signed in
       return true;
     }
 
-    // If no session, send OTP to sign in
+    // Step 2: Check if the user exists
+    const { data: userData, error: userError } = await supabase
+      .from('profiles') // Adjust this if your user data is elsewhere
+      .select('id')
+      .eq('email', email)
+      .single();
+
+    if (userError) {
+      // If no user exists, create a new account
+      const { error: otpError } = await supabase.auth.signInWithOtp({ email });
+      if (otpError) throw otpError;
+
+      // Return 'new' indicating a new account was created
+      return 'new';
+    }
+
+    // Step 3: If user exists but no active session, send OTP
     const { error: otpError } = await supabase.auth.signInWithOtp({ email });
     if (otpError) throw otpError;
 
-    // OTP sent, so return false indicating OTP verification is required
+    // Return false indicating OTP verification is required
     return false;
   } catch (error) {
     if (error instanceof Error) {
@@ -98,47 +113,120 @@ export const verifyUserOtp = async (
   return { user: { user_id: user.id, email: user.email! } };
 };
 
-export const createStudent = async (user_id: string): Promise<Student> => {
-  const { data, error } = await supabase.from('students').insert({ user_id }).select().single();
+export const studentExists = async (profile_id: number): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from('students')
+    .select('student_id')
+    .eq('profile_id', profile_id)
+    .single();
+  if (error) throw error;
+
+  // Return true if a student exists with the specified profile_id
+  return !!data;
+};
+
+export const createStudent = async (
+  email: string,
+  first_name: string,
+  last_name: string,
+): Promise<Student> => {
+  // Step 1: Update the profiles table with first and last name based on email
+  const { data: profileData, error: profileError } = await supabase
+    .from('profiles')
+    .update({ first_name, last_name })
+    .eq('email', email)
+    .select('id')
+    .single();
+
+  if (profileError) throw profileError;
+  if (!profileData) throw new Error('Profile not found with the specified email.');
+
+  const profile_id = profileData.id;
+
+  // Step 2: Insert into students table with the retrieved profile_id
+  const { data: studentData, error: studentError } = await supabase
+    .from('students')
+    .insert({ profile_id })
+    .select()
+    .single();
+
+  if (studentError) throw studentError;
+  return studentData;
+};
+
+export const createAdvisor = async (
+  email: string,
+  first_name: string,
+  last_name: string,
+  school_id: number,
+  bio: string,
+  advisor_image: string,
+  ical_link: string,
+): Promise<Advisor> => {
+  // Update the profiles table with the first and last name based on the email
+  const { data: profileData, error: profileError } = await supabase
+    .from('profiles')
+    .update({ first_name, last_name })
+    .eq('email', email)
+    .select()
+    .single();
+
+  // Check if the profile update had an error or returned no data
+  if (profileError) throw profileError;
+  if (!profileData) throw new Error('Profile not found with the specified email.');
+
+  // Retrieve profile_id from the updated profile
+  const profile_id = profileData.id;
+
+  // Insert a new row into the advisors table with the provided inputs
+  const { data, error } = await supabase
+    .from('advisors')
+    .insert([{ profile_id, school_id, bio, advisor_image, ical_link }])
+    .select()
+    .single();
+
   if (error) throw error;
   return data;
 };
 
-export const createAdvisor = async (
-  user_id: string,
-  school_id: number,
-  advisor_name: string,
-): Promise<Advisor> => {
+export const getProfileIdByUserId = async (user_id: string): Promise<number> => {
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('user_id', user_id)
+    .single();
+
+  if (error) throw error;
+  if (!profile?.id) throw new Error('Profile not found');
+
+  return profile.id;
+};
+
+export const getProfileByProfileId = async (profile_id: number) => {
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', profile_id).single();
+  if (error) throw error;
+  return data;
+};
+
+export const getProfileByUserId = async (user_id: string) => {
   const { data, error } = await supabase
-    .from('advisors')
-    .insert({ user_id, school_id, advisor_name: advisor_name })
-    .select()
+    .from('profiles')
+    .select('*')
+    .eq('user_id', user_id)
     .single();
   if (error) throw error;
   return data;
 };
 
-export const getUserById = async (userId: AuthUser['user_id']): Promise<AuthUser> => {
-  const { data, error } = await supabase.auth.getUser(userId);
-  if (error) throw error;
-
-  if (!data?.user || !data.user.email) {
-    throw new Error('User not found or email is missing');
-  }
-
-  return { user_id: data.user.id, email: data.user.email };
-};
-
+// change this up when we change the columns
 export const getAdvisorById = async (advisorId: Advisor['advisor_id']) => {
   const { data, error } = await supabase
     .from('advisors')
     .select(
       `advisor_id,
-      user_id,
+      profile_id,
       school_id,
-      payment_info_id,
       bio,
-      advisor_name,
       advisor_image,
       ical_link,
       advisor_labels (
@@ -147,35 +235,87 @@ export const getAdvisorById = async (advisorId: Advisor['advisor_id']) => {
           label_name,
           category_name
         )
+      ),
+      profiles (
+        first_name,
+        last_name,
+        email
       )`,
     )
     .eq('advisor_id', advisorId)
     .single();
+
   if (error) throw error;
   return data;
 };
 
-export const getStudentById = async (studentId: Student['student_id']): Promise<Student> => {
+export const getStudentById = async (studentId: Student['student_id']) => {
   const { data, error } = await supabase
     .from('students')
-    .select('*')
+    .select(
+      `student_id,
+      profile_id,
+      profiles (
+        first_name,
+        last_name,
+        email
+      )`,
+    )
     .eq('student_id', studentId)
     .single();
+
   if (error) throw error;
   return data;
 };
 
-export const getStudentIdByUserId = async (user_id: string): Promise<Student> => {
+export const getStudentByProfileId = async (profile_id: number): Promise<Student> => {
   const { data: student, error } = await supabase
     .from('students')
-    .select('*')
+    .select(
+      `student_id,
+      profile_id,
+      profiles (
+        first_name,
+        last_name,
+        email
+      )`,
+    )
+    .eq('profile_id', profile_id)
+    .single();
+
+  if (error) throw error;
+  if (!student) throw new Error('Student not found for the specified profile_id');
+
+  return student;
+};
+
+export const getStudentIdByUserId = async (
+  user_id: string,
+): Promise<Student & { email: string; first_name: string; last_name: string }> => {
+  // Step 1: Retrieve the profile_id and additional fields based on user_id
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('id, email, first_name, last_name')
     .eq('user_id', user_id)
     .single();
 
-  if (error) throw error;
-  if (!student?.student_id) throw new Error('Student not found');
+  if (profileError) throw profileError;
+  if (!profile) throw new Error('Profile not found for the specified user_id');
 
-  return student;
+  const { id: profile_id, email, first_name, last_name } = profile;
+
+  // Step 2: Retrieve the student based on profile_id
+  const { data: student, error: studentError } = await supabase
+    .from('students')
+    .select('*')
+    .eq('profile_id', profile_id)
+    .single();
+
+  if (studentError) throw studentError;
+  if (!student?.student_id) throw new Error('Student not found for the specified profile_id');
+
+  // Combine student data with profile information
+  return { ...student, email, first_name, last_name };
 };
 
 // ------------------------------------------------
@@ -203,11 +343,9 @@ export const getAdvisorsForCollege = async (collegeId: College['school_id']) => 
     .from('advisors')
     .select(
       `advisor_id,
-      user_id,
+      profile_id,
       school_id,
-      payment_info_id,
       bio,
-      advisor_name,
       advisor_image,
       ical_link,
       advisor_labels (
@@ -216,9 +354,15 @@ export const getAdvisorsForCollege = async (collegeId: College['school_id']) => 
           label_name,
           category_name
         )
+      ),
+      profiles (
+        first_name,
+        last_name,
+        email
       )`,
     )
     .eq('school_id', collegeId);
+
   if (error) throw error;
   return data || [];
 };
@@ -242,51 +386,14 @@ const resolveRecurrenceTimes = (event: ical.VEvent, dates: Date[]) => {
 export async function getAdvisorAvailability(
   advisorId: Advisor['advisor_id'],
 ): Promise<AvailabilityEvent[]> {
-  const { data: advisor } = await supabase
-    .from('advisors')
-    .select('advisor_id, ical_link')
-    .eq('advisor_id', advisorId)
-    .single();
+  const response = await fetch(`/api/availability/${advisorId}`);
+  const data = await response.json();
 
-  if (!advisor!.ical_link) return [];
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to fetch availability');
+  }
 
-  const events: ical.CalendarResponse = await ical.async.fromURL(advisor!.ical_link);
-
-  const now: Date = new Date();
-  const twoWeeksAhead: Date = new Date();
-  twoWeeksAhead.setDate(now.getDate() + 14);
-
-  const availabilityEvents: AvailabilityEvent[] = [];
-
-  Object.values(events).forEach((event) => {
-    if (event.type !== 'VEVENT') return;
-
-    if (event.rrule) {
-      const dates = event.rrule.between(now, twoWeeksAhead, true);
-
-      resolveRecurrenceTimes(event, dates).forEach((date) => {
-        const startDate = new Date(date);
-        const duration = event.end.getTime() - event.start.getTime();
-        const endDate = new Date(startDate.getTime() + duration);
-        availabilityEvents.push({
-          start_time: startDate.toISOString(),
-          end_time: endDate.toISOString(),
-        });
-      });
-    } else {
-      if (
-        event.start.getTime() >= now.getTime() &&
-        event.end.getTime() <= twoWeeksAhead.getTime()
-      ) {
-        availabilityEvents.push({
-          start_time: event.start.toISOString(),
-          end_time: event.end.toISOString(),
-        });
-      }
-    }
-  });
-
-  return availabilityEvents;
+  return data.availabilityEvents;
 }
 
 export const createMeeting = async (

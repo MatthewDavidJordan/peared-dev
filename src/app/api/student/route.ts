@@ -1,6 +1,12 @@
-// /app/api/users/verify-otp/route.ts
+// /app/api/students/route.ts
 import { NextResponse } from 'next/server';
-import { createStudent, getStudentIdByUserId } from '@/lib/queries';
+import {
+  createStudent,
+  getProfileIdByUserId,
+  getProfileByProfileId,
+  studentExists,
+  getStudentByProfileId,
+} from '@/lib/queries';
 
 export async function POST(req: Request) {
   try {
@@ -8,15 +14,35 @@ export async function POST(req: Request) {
 
     const user_id = body.user_id;
 
-    // try to create a student with the user_id
-    const student = await createStudent(user_id);
-    if (!student) {
-      // there is a duplicate student so try to get student by user_id
-      const student = await getStudentIdByUserId(user_id);
+    const profile_id = await getProfileIdByUserId(user_id);
+    const profile = await getProfileByProfileId(profile_id);
+
+    // check if a student with the profile_id already exists
+    const doesStudentExist: boolean = await studentExists(profile.id);
+
+    if (doesStudentExist) {
+      // get the student and return it
+      const student = await getStudentByProfileId(profile.id);
+      if (!student) {
+        throw new Error(
+          'Failed to get student from supabase after getStudentsByProfileId in /api/student',
+        );
+      }
       return NextResponse.json(student, { status: 200 });
     }
 
-    // Return the user and student data on successful verification
+    // create a new student
+    const student = await createStudent(
+      profile.id.toString(),
+      profile.first_name,
+      profile.last_name,
+    );
+    if (!student) {
+      throw new Error(
+        'Failed to create student after finding that student does not exist in /api/student',
+      );
+    }
+    // Return the student
     return NextResponse.json(student, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {

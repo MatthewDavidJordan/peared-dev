@@ -1,11 +1,17 @@
 // /users/routes.ts
-import { AuthUser, getAuthUserFromActiveSession, signUpAndSignIn } from '@/lib/queries';
+import {
+  AuthUser,
+  createStudent,
+  getAuthUserFromActiveSession,
+  signUpAndSignIn,
+} from '@/lib/queries';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 const CreateUserSchema = z.object({
   email: z.string().email(),
-  name: z.string().min(1),
+  first_name: z.string().min(1),
+  last_name: z.string().min(1),
 });
 
 export type CreateUserRequest = z.infer<typeof CreateUserSchema>;
@@ -17,17 +23,34 @@ export async function POST(req: Request) {
 
     if (!validatedData.success) {
       return NextResponse.json(
-        { error: 'Invalid input', details: validatedData.error.format() },
+        {
+          error: 'Invalid input to /api/users/route.ts endpoint',
+          details: validatedData.error.format(),
+        },
         { status: 400 },
       );
     }
 
-    const { email } = validatedData.data;
+    const { email, first_name, last_name } = validatedData.data;
 
     // Check if the user is signed in or send OTP if not
-    const isUserSignedIn: boolean = await signUpAndSignIn(email);
+    const result = await signUpAndSignIn(email);
+    // result is either true, false, or "new"
 
-    if (isUserSignedIn) {
+    if (result === 'new') {
+      // call createStudent with email, first_name, last_name
+      const creationResult = await createStudent(email, first_name, last_name);
+      // if there is an error, return 500
+      if (!creationResult) {
+        return NextResponse.json({ error: 'Error creating student' }, { status: 500 });
+      }
+    }
+
+    if (result === 'new' || result === false) {
+      return NextResponse.json({ otpSent: true }, { status: 200 });
+    }
+
+    if (result === true) {
       // If already signed in, get the active user session and return the user
       const user: AuthUser | null = await getAuthUserFromActiveSession();
       if (!user) {

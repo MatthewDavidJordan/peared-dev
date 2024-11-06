@@ -1,36 +1,63 @@
-import { google } from "googleapis";
-import * as serviceAccount from "./service-account-key.json";
+// src/lib/googleMeet.ts
+import { google } from 'googleapis';
 
+interface MeetingConfig {
+  startTime: string;
+  endTime: string;
+  advisorEmail: string;
+  studentEmail: string;
+  timeZone?: string;
+}
 
-const jwtClient = new google.auth.JWT(
-  serviceAccount.client_email,
-  undefined,
-  serviceAccount.private_key,
-  ['https://www.googleapis.com/auth/calendar']
-);
+function validateEnvironmentVariables() {
+  const requiredVars = {
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN,
+  };
 
-export default async function createGoogleMeetWithParticipants(startTime: string, endTime: string, advisorEmail: string, studentEmail: string): Promise<string> {
+  const missingVars = Object.entries(requiredVars)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+
+  if (missingVars.length > 0) {
+    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  }
+
+  return requiredVars as { [K in keyof typeof requiredVars]: string };
+}
+
+export async function createGoogleMeetWithParticipants({
+  startTime,
+  endTime,
+  advisorEmail,
+  studentEmail,
+  timeZone = 'America/New_York',
+}: MeetingConfig): Promise<string> {
   try {
-    await jwtClient.authorize();
+    const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN } =
+      validateEnvironmentVariables();
 
-    const calendar = google.calendar({ version: 'v3', auth: jwtClient });
+    const oauth2Client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
 
-    // Define the event
+    oauth2Client.setCredentials({
+      refresh_token: GOOGLE_REFRESH_TOKEN,
+    });
+
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
     const event = {
-      summary: 'Advisory Meeting',
+      summary: 'Peared Advisory Meeting',
+      description: 'Meeting between advisor and student',
       start: {
         dateTime: startTime,
-        timeZone: 'America/New_York',
+        timeZone,
       },
       end: {
         dateTime: endTime,
-        timeZone: 'America/New_York',
+        timeZone,
       },
-      attendees: [
-        { email: advisorEmail },
-        { email: studentEmail },
-        { email: process.env.ADMIN_EMAIL },
-      ],
+      attendees: [{ email: advisorEmail }, { email: studentEmail }],
       conferenceData: {
         createRequest: {
           requestId: `meet-${Date.now()}`,
@@ -41,15 +68,32 @@ export default async function createGoogleMeetWithParticipants(startTime: string
       },
     };
 
+    console.log('Creating calendar event with:', {
+      ...event,
+      attendees: event.attendees.map((a) => a.email),
+    });
+
     const response = await calendar.events.insert({
       calendarId: 'primary',
       conferenceDataVersion: 1,
+      sendUpdates: 'all',
       requestBody: event,
     });
 
-    return response.data.hangoutLink!;
+    console.log('Calendar response:', response.data);
+
+    const meetLink = response.data.conferenceData?.entryPoints?.find(
+      (entry) => entry.entryPointType === 'video',
+    )?.uri;
+
+    if (!meetLink) {
+      throw new Error('No Google Meet link generated in the response');
+    }
+
+    return meetLink;
   } catch (error) {
-    console.error('Error creating Google Meet:', error);
-    throw new Error('Failed to create Google Meet');
+    console.error('Detailed error in createGoogleMeetWithParticipants:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    throw new Error(`Failed to create Google Meet: ${errorMessage}`);
   }
 }

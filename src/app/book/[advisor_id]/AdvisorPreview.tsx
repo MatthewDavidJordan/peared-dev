@@ -14,6 +14,10 @@ export default function AdvisorPreview({
 }) {
   const meetingLengthMinString = Math.round(DEFAULT_MEETING_DURATION_MS / 1000 / 60).toString();
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const advisorName = advisor.profiles
+    ? `${advisor.profiles.first_name} ${advisor.profiles.last_name}`
+    : 'Advisor';
+
   return (
     <div>
       <div className="flex h-full flex-col gap-2 px-5 py-4">
@@ -24,7 +28,7 @@ export default function AdvisorPreview({
           height={80}
           alt="advisor photo"
         />
-        <h2 className="text-2xl font-bold">{advisor.advisor_name}</h2>
+        <h2 className="text-2xl font-bold">{advisorName}</h2>
         <Link
           href={`/school/${advisor.school_id}`}
           className="flex items-center gap-1 font-extrabold text-blue-900 underline"

@@ -1,93 +1,146 @@
-// BookCard.tsx
 'use client';
-import AdvisorPreview from '@/app/book/[advisor_id]/AdvisorPreview';
-import SignUpForm from '@/app/book/[advisor_id]/SignUpForm';
-import TimeForm from '@/app/book/[advisor_id]/TimeForm';
-import OtpCard from '@/app/book/[advisor_id]/OtpCard';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { parseAsIsoDateTime, useQueryState } from 'nuqs';
+import {
+  type AvailabilityEvent,
+  type Student,
+  type getAdvisorById,
+  type getCollegeById,
+} from '@/lib/queries';
 import { DEFAULT_MEETING_DURATION_MS } from '@/lib/consts';
 import { cn } from '@/lib/funcs';
-import { useState } from 'react';
-import type { getAdvisorAvailability, getAdvisorById, getCollegeById } from '@/lib/queries';
-import { parseAsIsoDateTime, useQueryState } from 'nuqs';
-import router from 'next/router';
-import { Student } from '@/lib/queries';
+import AdvisorPreview from './AdvisorPreview';
+import SignUpForm from './SignUpForm';
+import TimeForm from './TimeForm';
+import OtpCard from './OtpCard';
+import { useCallback, useState } from 'react';
 
-export default function BookCard({
-  advisor,
-  school,
-  availabilities,
-}: {
+interface BookCardProps {
   advisor: Awaited<ReturnType<typeof getAdvisorById>>;
   school: Awaited<ReturnType<typeof getCollegeById>>;
-  availabilities: Awaited<ReturnType<typeof getAdvisorAvailability>>;
-}) {
+}
+
+interface BookingState {
+  availabilities: AvailabilityEvent[];
+  isLoading: boolean;
+  otpEmail: string;
+  showOtp: boolean;
+}
+
+export default function BookCard({ advisor, school }: BookCardProps) {
+  const router = useRouter();
   const [selectedTime, setSelectedTime] = useQueryState('time', parseAsIsoDateTime);
-  const [otpRequired, setOtpRequired] = useState(false); // State to track OTP requirement
-  const [email, setEmail] = useState(''); // Store the email used for OTP
-  const [studentId, setStudentId] = useState<number | null>(null);
+  const [bookingState, setBookingState] = useState<BookingState>({
+    availabilities: [],
+    isLoading: true,
+    otpEmail: '',
+    showOtp: false,
+  });
 
-  const handleOtpRequired = (email: string) => {
-    console.log('OTP required for email:', email);
-    setEmail(email); // Set the email for OTP verification
-    setOtpRequired(true); // Trigger OTP card display
-  };
-
-  const handleOtpVerified = async (user_id: number) => {
-    console.log('OTP verified successfully');
-    setOtpRequired(false); // Hide OTP card upon successful verification
-
-    // now call api/student/create to create a student or see if they exist
-    try {
-      const res = await fetch('/api/student', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user_id,
-        }),
-      });
-      const student: Student = await res.json();
-
-      // Define the start and end times for the meeting
-      const startTime = selectedTime?.toISOString();
-      const endTime = selectedTime
-        ? new Date(selectedTime.getTime() + DEFAULT_MEETING_DURATION_MS).toISOString()
-        : '';
-
-      // console log the meeting details
-      console.log('Creating meeting:', {
-        advisorId: advisor.advisor_id,
-        studentId: student.student_id,
-        startTime,
-        endTime,
-      });
-
-      // Create a meeting for the verified student
+  // Fetch availability data
+  useEffect(() => {
+    async function fetchAvailability() {
       try {
-        const res = await fetch('/api/meetings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            advisorId: advisor.advisor_id,
-            studentId,
-            startTime,
-            endTime,
-          }),
-        });
-        const meeting = await res.json();
+        const response = await fetch(`/api/availability/${advisor.advisor_id}`);
+        if (!response.ok) throw new Error('Failed to fetch availability');
 
-        // Navigate to the meeting page upon successful creation
-        if (meeting) {
-          router.push(`/meeting/${meeting.meeting_id}`);
-        } else {
-          console.error('Failed to create meeting');
-        }
+        const data = await response.json();
+        setBookingState((prev) => ({
+          ...prev,
+          availabilities: data.availabilityEvents,
+          isLoading: false,
+        }));
       } catch (error) {
-        console.error('Error creating meeting:', error);
+        console.error('Error fetching availability:', error);
+        router.push('/404');
       }
-    } catch (error) {
-      console.error('Error creating student after OTP verification:', error);
     }
+
+    fetchAvailability();
+  }, [advisor.advisor_id, router]);
+
+  // API handlers
+  const createStudent = async (userId: number): Promise<Student> => {
+    const response = await fetch('/api/student', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create student');
+    }
+
+    return response.json();
   };
+
+  const createMeeting = async (studentId: number, startTime: string, endTime: string) => {
+    const response = await fetch('/api/meetings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        advisor_id: advisor.advisor_id,
+        student_id: studentId,
+        start_time: startTime,
+        end_time: endTime,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create meeting');
+    }
+
+    return response.json();
+  };
+
+  // Event handlers
+  const handleOtpRequired = useCallback((email: string) => {
+    setBookingState((prev) => ({
+      ...prev,
+      otpEmail: email,
+      showOtp: true,
+    }));
+  }, []);
+
+  const handleOtpVerified = useCallback(
+    async (userId: number) => {
+      try {
+        if (!selectedTime) {
+          throw new Error('No time selected');
+        }
+
+        // Create the student record
+        const student = await createStudent(userId);
+
+        // Calculate meeting times
+        const startTime = selectedTime.toISOString();
+        const endTime = new Date(
+          selectedTime.getTime() + DEFAULT_MEETING_DURATION_MS,
+        ).toISOString();
+
+        // Create the meeting
+        const meeting = await createMeeting(student.student_id, startTime, endTime);
+
+        // Reset OTP state and redirect
+        setBookingState((prev) => ({ ...prev, showOtp: false }));
+        router.push(`/meeting/${meeting.meeting_id}`);
+      } catch (error) {
+        console.error('Error processing OTP verification:', error);
+        // Here you might want to show an error message to the user
+      }
+    },
+    [selectedTime, router],
+  );
+
+  if (bookingState.isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-lg">Loading availability...</div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -96,9 +149,10 @@ export default function BookCard({
       )}
     >
       <AdvisorPreview advisor={advisor} school={school} />
+
       {!selectedTime ? (
         <TimeForm
-          availabilities={availabilities}
+          availabilities={bookingState.availabilities}
           selectedTime={selectedTime}
           setSelectedTime={setSelectedTime}
         />
@@ -108,13 +162,10 @@ export default function BookCard({
             advisorId={advisor.advisor_id}
             selectedTime={selectedTime}
             setSelectedTime={setSelectedTime}
-            onOtpRequired={handleOtpRequired} // Trigger OTP on requirement
+            onOtpRequired={handleOtpRequired}
           />
-          {otpRequired && (
-            <OtpCard
-              email={email}
-              onVerified={handleOtpVerified} // Handle successful OTP verification
-            />
+          {bookingState.showOtp && (
+            <OtpCard email={bookingState.otpEmail} onVerified={handleOtpVerified} />
           )}
         </div>
       )}
