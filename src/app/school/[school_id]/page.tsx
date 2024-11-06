@@ -49,11 +49,11 @@ function AdvisorCard({
         <AdvisorLabels advisor_labels={advisor.advisor_labels} />
       </CardContent>
       <CardFooter>
-        <Button variant="primaryToAccent" className="w-full">
-          <Link href={`/book/${advisor.advisor_id}`}>
+        <Link href={`/book/${advisor.advisor_id}`}>
+          <Button variant="primaryToAccent" className="w-full">
             Book a Call with {advisor.profiles?.first_name.split(' ')[0]}
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       </CardFooter>
     </Card>
   );
