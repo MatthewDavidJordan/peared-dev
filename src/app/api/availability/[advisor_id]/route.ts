@@ -1,4 +1,5 @@
 import { getAdvisorIcalLinkById } from '@/lib/queries';
+// @ts-expect-error
 import IcalExpander from 'ical-expander';
 import { NextRequest, NextResponse } from 'next/server';
 
