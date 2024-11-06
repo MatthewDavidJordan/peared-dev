@@ -1,4 +1,3 @@
-// /app/api/students/route.ts
 import { NextResponse } from 'next/server';
 import {
   createStudent,
@@ -7,6 +6,97 @@ import {
   studentExists,
   getStudentByProfileId,
 } from '@/lib/queries';
+
+/**
+ * @swagger
+ * /api/students:
+ *   post:
+ *     tags:
+ *       - Students
+ *     summary: Create or retrieve student
+ *     description: |
+ *       Creates a new student record or retrieves an existing one based on the user_id.
+ *       Process:
+ *       1. Gets profile_id from user_id
+ *       2. Retrieves profile information
+ *       3. Checks if student record exists
+ *       4. Either returns existing student or creates new one
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user_id
+ *             properties:
+ *               user_id:
+ *                 type: string
+ *                 description: Supabase user ID
+ *                 example: "123e4567-e89b-12d3-a456-426614174000"
+ *     responses:
+ *       200:
+ *         description: Student successfully created or retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 student_id:
+ *                   type: integer
+ *                   example: 1
+ *                 profile_id:
+ *                   type: integer
+ *                   example: 100
+ *                 first_name:
+ *                   type: string
+ *                   example: "John"
+ *                 last_name:
+ *                   type: string
+ *                   example: "Doe"
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2024-01-01T10:00:00.000Z"
+ *                 profiles:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: string
+ *                       example: "john.doe@example.com"
+ *                     first_name:
+ *                       type: string
+ *                       example: "John"
+ *                     last_name:
+ *                       type: string
+ *                       example: "Doe"
+ *       400:
+ *         description: Invalid user_id or profile not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Profile not found for user_id"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   examples:
+ *                     failedGet:
+ *                       value: "Failed to get student from supabase after getStudentsByProfileId in /api/student"
+ *                     failedCreate:
+ *                       value: "Failed to create student after finding that student does not exist in /api/student"
+ *                     unknown:
+ *                       value: "An unknown error occurred"
+ */
 
 export async function POST(req: Request) {
   try {

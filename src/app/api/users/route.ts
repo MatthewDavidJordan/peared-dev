@@ -1,4 +1,3 @@
-// /users/routes.ts
 import {
   AuthUser,
   createStudent,
@@ -7,6 +6,119 @@ import {
 } from '@/lib/queries';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+
+/**
+ * @swagger
+ * /api/users:
+ *   post:
+ *     tags:
+ *       - Users
+ *     summary: Create user or initiate OTP flow
+ *     description: |
+ *       Handles user creation and authentication flow:
+ *       1. If user doesn't exist: Creates new user and sends OTP
+ *       2. If user exists but not signed in: Sends OTP
+ *       3. If user exists and is signed in: Returns user data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - first_name
+ *               - last_name
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User's email address
+ *                 example: "user@example.com"
+ *               first_name:
+ *                 type: string
+ *                 minLength: 1
+ *                 description: User's first name
+ *                 example: "John"
+ *               last_name:
+ *                 type: string
+ *                 minLength: 1
+ *                 description: User's last name
+ *                 example: "Doe"
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - type: object
+ *                   description: OTP sent response
+ *                   properties:
+ *                     otpSent:
+ *                       type: boolean
+ *                       example: true
+ *                 - type: object
+ *                   description: Active session response
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         user_id:
+ *                           type: string
+ *                           example: "123e4567-e89b-12d3-a456-426614174000"
+ *                         email:
+ *                           type: string
+ *                           example: "user@example.com"
+ *                         created_at:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2024-01-01T10:00:00.000Z"
+ *       400:
+ *         description: Invalid input data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid input to /api/users/route.ts endpoint"
+ *                 details:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["Invalid email"]
+ *                     first_name:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["String must contain at least 1 character(s)"]
+ *                     last_name:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["String must contain at least 1 character(s)"]
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   examples:
+ *                     creation:
+ *                       value: "Error creating student"
+ *                     session:
+ *                       value: "Error retrieving active session"
+ *                     unknown:
+ *                       value: "An unknown error occurred"
+ */
 
 const CreateUserSchema = z.object({
   email: z.string().email(),
