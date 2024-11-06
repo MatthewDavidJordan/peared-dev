@@ -19,6 +19,7 @@ interface VerifyOtpResponse {
 async function verifyOtp(email: string, otp: string): Promise<VerifyOtpResponse> {
   const response = await fetch('/api/users/verify-otp', {
     method: 'POST',
+    cache: 'no-cache',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, otp }),
   });

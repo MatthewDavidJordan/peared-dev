@@ -39,6 +39,7 @@ const createMeeting = async (params: {
 }) => {
   const response = await fetch('/api/meetings', {
     method: 'POST',
+    cache: 'no-cache',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       advisor_id: params.advisorId,

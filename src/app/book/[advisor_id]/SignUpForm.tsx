@@ -20,6 +20,7 @@ function RequiredFieldError() {
 async function createUser(email: string, first_name: string, last_name: string) {
   const res = await fetch('/api/users', {
     method: 'POST',
+    cache: 'no-cache',
     body: JSON.stringify({ email, first_name, last_name }),
   });
   return res.json();
@@ -34,6 +35,7 @@ async function createMeeting(
 ) {
   const res = await fetch('/api/meetings', {
     method: 'POST',
+    cache: 'no-cache',
     body: JSON.stringify({
       advisor_id,
       student_id,

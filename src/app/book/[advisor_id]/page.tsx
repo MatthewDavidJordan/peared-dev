@@ -3,7 +3,6 @@ import BookCard from '@/app/book/[advisor_id]/BookCard';
 import NavBar from '@/components/NavBar';
 import { getAdvisorById, getCollegeById } from '@/lib/queries';
 import { redirect } from 'next/navigation';
-import { Advisor } from '@/lib/queries';
 
 export default async function CalendarPage({
   params: { advisor_id: advisorIdString },
