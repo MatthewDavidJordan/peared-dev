@@ -53,7 +53,7 @@ export default async function MeetingPage({
 
           <div className="grid grid-cols-3 gap-y-2 text-sm sm:text-base">
             {[
-              { left: 'Who', right: advisor.advisor_name },
+              { left: 'Who', right: advisor.profiles?.first_name },
               { left: 'When', right: generateWhenString(meeting.start_time, meeting.end_time) },
               {
                 left: 'Where',
@@ -83,7 +83,7 @@ export default async function MeetingPage({
 
           <hr />
 
-          <h2 className="text-2xl font-bold">{advisor.advisor_name}</h2>
+          <h2 className="text-2xl font-bold">{advisor.profiles?.first_name}</h2>
           <p className="text-sm font-light text-zinc-600">{advisor.bio}</p>
           <AdvisorLabels advisor_labels={advisor.advisor_labels} />
 

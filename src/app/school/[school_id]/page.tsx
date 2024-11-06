@@ -38,12 +38,12 @@ function AdvisorCard({
     <Card className="flex flex-col overflow-hidden">
       <Image
         src={advisor.advisor_image ?? FALLBACK_IMAGE}
-        alt={advisor.advisor_name}
+        alt={advisor.profiles!.first_name}
         width={400}
         height={400}
         className="aspect-square min-h-64 w-full rounded-b-lg object-cover"
       />
-      <CardTitle className="p-4">{advisor.advisor_name}</CardTitle>
+      <CardTitle className="p-4">{advisor.profiles?.first_name}</CardTitle>
       <CardContent className="flex-grow">
         <p className="mb-4 text-sm text-muted-foreground">{advisor.bio}</p>
         <AdvisorLabels advisor_labels={advisor.advisor_labels} />
@@ -51,7 +51,7 @@ function AdvisorCard({
       <CardFooter>
         <Button variant="primaryToAccent" className="w-full">
           <Link href={`/book/${advisor.advisor_id}`}>
-            Book a Call with {advisor.advisor_name.split(' ')[0]}
+            Book a Call with {advisor.profiles?.first_name.split(' ')[0]}
           </Link>
         </Button>
       </CardFooter>

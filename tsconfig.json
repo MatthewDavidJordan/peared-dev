@@ -39,7 +39,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "src/app/api/users/verify-otp"  ],
   "exclude": [
     "node_modules"
   ]
