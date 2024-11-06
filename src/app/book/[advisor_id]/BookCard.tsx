@@ -1,20 +1,19 @@
 'use client';
-import { useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { parseAsIsoDateTime, useQueryState } from 'nuqs';
+import { DEFAULT_MEETING_DURATION_MS } from '@/lib/consts';
+import { cn } from '@/lib/funcs';
 import {
   type AvailabilityEvent,
   type Student,
   type getAdvisorById,
   type getCollegeById,
 } from '@/lib/queries';
-import { DEFAULT_MEETING_DURATION_MS } from '@/lib/consts';
-import { cn } from '@/lib/funcs';
+import { useRouter } from 'next/navigation';
+import { parseAsIsoDateTime, useQueryState } from 'nuqs';
+import { useCallback, useEffect, useState } from 'react';
 import AdvisorPreview from './AdvisorPreview';
+import OtpCard from './OtpCard';
 import SignUpForm from './SignUpForm';
 import TimeForm from './TimeForm';
-import OtpCard from './OtpCard';
-import { useState } from 'react';
 
 // API client functions
 const createStudent = async (userId: number): Promise<Student> => {
@@ -114,35 +113,28 @@ export default function BookCard({ advisor, school }: BookCardProps) {
 
   const handleOtpVerified = useCallback(
     async (userId: number) => {
-      try {
-        if (!selectedTime) {
-          throw new Error('No time selected');
-        }
-
-        // Create the student record
-        const student = await createStudent(userId);
-
-        // Calculate meeting times
-        const startTime = selectedTime.toISOString();
-        const endTime = new Date(
-          selectedTime.getTime() + DEFAULT_MEETING_DURATION_MS,
-        ).toISOString();
-
-        // Create the meeting
-        const meeting = await createMeeting({
-          advisorId: advisor.advisor_id,
-          studentId: student.student_id,
-          startTime,
-          endTime,
-        });
-
-        // Reset OTP state and redirect
-        setBookingState((prev) => ({ ...prev, showOtp: false }));
-        router.push(`/meeting/${meeting.meeting_id}`);
-      } catch (error) {
-        console.error('Error processing OTP verification:', error);
-        // TODO: Add error handling UI
+      if (!selectedTime) {
+        throw new Error('No time selected');
       }
+
+      // Create the student record
+      const student = await createStudent(userId);
+
+      // Calculate meeting times
+      const startTime = selectedTime.toISOString();
+      const endTime = new Date(selectedTime.getTime() + DEFAULT_MEETING_DURATION_MS).toISOString();
+
+      // Create the meeting
+      const meeting = await createMeeting({
+        advisorId: advisor.advisor_id,
+        studentId: student.student_id,
+        startTime,
+        endTime,
+      });
+
+      // Reset OTP state and redirect
+      setBookingState((prev) => ({ ...prev, showOtp: false }));
+      router.push(`/meeting/${meeting.meeting_id}`);
     },
     [advisor.advisor_id, router, selectedTime],
   );
@@ -169,7 +161,7 @@ export default function BookCard({ advisor, school }: BookCardProps) {
           selectedTime={selectedTime}
           setSelectedTime={setSelectedTime}
         />
-      ) : (
+      ) : !bookingState.showOtp ? (
         <div className="flex w-full flex-col lg:flex-row">
           <SignUpForm
             advisorId={advisor.advisor_id}
@@ -177,9 +169,10 @@ export default function BookCard({ advisor, school }: BookCardProps) {
             setSelectedTime={setSelectedTime}
             onOtpRequired={handleOtpRequired}
           />
-          {bookingState.showOtp && (
-            <OtpCard email={bookingState.otpEmail} onVerified={handleOtpVerified} />
-          )}
+        </div>
+      ) : (
+        <div>
+          <OtpCard email={bookingState.otpEmail} onVerified={handleOtpVerified} />
         </div>
       )}
     </div>
