@@ -25,9 +25,6 @@ function Hero() {
       <p className="text-lg text-muted-foreground">
         Connect with real students. Get authentic insights. Make informed decisions.
       </p>
-      {/* <Button asChild variant="accent">
-        <Link href="/sign-up">Get Started</Link>
-      </Button> */}
     </div>
   );
 }
@@ -35,43 +32,58 @@ function Hero() {
 async function SchoolSection() {
   const schools = await getAllColleges();
 
+  if (!schools || schools.length === 0) {
+    return (
+      <section className="container mx-auto p-5 text-center">
+        <p className="text-lg text-muted-foreground">No schools available at the moment.</p>
+      </section>
+    );
+  }
+
   return (
     <section className="container mx-auto grid grid-cols-1 gap-10 p-5 !pt-0 sm:grid-cols-2 sm:p-10 lg:grid-cols-3">
-      {schools.map((school) => (
-        <SchoolCard key={school.school_id} school={school} />
-      ))}
+      {schools.map((school) =>
+        school ? <SchoolCard key={school.school_id} school={school} /> : null,
+      )}
     </section>
   );
 }
 
 interface SchoolCardProps {
-  school: College;
+  school: NonNullable<College>;
 }
 
 function SchoolCard({ school }: SchoolCardProps) {
+  if (!school || !school.school_id) {
+    return null;
+  }
+
   return (
     <Link
       href={`/school/${school.school_id}`}
       className={cn(
-        'block overflow-hidden rounded-lg border shadow-lg',
+        'block overflow-hidden rounded-lg border bg-white shadow-lg',
         'transition-transform duration-300 hover:scale-105',
       )}
     >
-      <div className="relative aspect-[16/9] w-full">
-        <Image
-          src={
-            school.school_image ||
-            'https://admissionscheckup.com/wp-content/uploads/2023/09/Georgetown-University-Logo.png'
-          }
-          alt={`${school.school_name} logo`}
-          className="object-cover"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          fill
-          priority={false}
-        />
+      <div className="relative flex aspect-[16/9] w-full items-center justify-center bg-white p-4">
+        {school.school_image ? (
+          <Image
+            src={school.school_image}
+            alt={`${school.school_name || 'School'} logo`}
+            className="object-contain"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            fill
+            priority={false}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-lg font-semibold text-gray-400">
+            {school.school_name || 'School Name Unavailable'}
+          </div>
+        )}
       </div>
-      <div className="p-4">
-        <h3 className="font-semibold">{school.school_name}</h3>
+      <div className="border-t bg-white p-4">
+        <h3 className="font-semibold">{school.school_name || 'School Name Unavailable'}</h3>
       </div>
     </Link>
   );
