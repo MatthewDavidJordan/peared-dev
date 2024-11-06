@@ -1,26 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import ical from 'node-ical';
-import { getTimezoneOffset } from 'date-fns-tz';
 import { getAdvisorIcalLinkById } from '@/lib/queries';
+import IcalExpander from 'ical-expander';
+import { NextRequest, NextResponse } from 'next/server';
 
 interface AvailabilityEvent {
   start_time: string;
   end_time: string;
 }
-
-const resolveRecurrenceTimes = (event: ical.VEvent, dates: Date[]): Date[] => {
-  return dates.map((date) => {
-    if (!event.rrule) throw new Error("Event doesn't have a recurrence rule");
-
-    const tzId = event.rrule.origOptions.tzid;
-    if (tzId) {
-      const offset = getTimezoneOffset(tzId, date);
-      return new Date(date.getTime() - offset);
-    } else {
-      throw new Error('Timezone not provided');
-    }
-  });
-};
 
 export async function GET(
   request: NextRequest,
@@ -34,42 +19,23 @@ export async function GET(
       return NextResponse.json({ availabilityEvents: [] });
     }
 
-    const events: ical.CalendarResponse = await ical.async.fromURL(icalLink);
+    const icalRes = await fetch(icalLink);
+    const icalText = await icalRes.text();
+    const icalExpander = new IcalExpander({ ics: icalText, maxIterations: 100 });
 
     const now: Date = new Date();
     const twoWeeksAhead: Date = new Date();
     twoWeeksAhead.setDate(now.getDate() + 14);
 
-    const availabilityEvents: AvailabilityEvent[] = [];
-
-    Object.values(events).forEach((event) => {
-      if (event.type !== 'VEVENT') return;
-
-      if (event.rrule) {
-        const dates = event.rrule.between(now, twoWeeksAhead, true);
-
-        resolveRecurrenceTimes(event, dates).forEach((date) => {
-          const startDate = new Date(date);
-          const duration = event.end.getTime() - event.start.getTime();
-          const endDate = new Date(startDate.getTime() + duration);
-          availabilityEvents.push({
-            start_time: startDate.toISOString(),
-            end_time: endDate.toISOString(),
-          });
-        });
-      } else {
-        if (
-          event.start.getTime() >= now.getTime() &&
-          event.end.getTime() <= twoWeeksAhead.getTime()
-        ) {
-          availabilityEvents.push({
-            start_time: event.start.toISOString(),
-            end_time: event.end.toISOString(),
-          });
-        }
-      }
-    });
-
+    const events = icalExpander.between(now, twoWeeksAhead);
+    const availabilityEvents: AvailabilityEvent[] = [...events.events, ...events.occurrences].map(
+      (event: any) => {
+        return {
+          start_time: event.startDate.toJSDate().toISOString(),
+          end_time: event.endDate.toJSDate().toISOString(),
+        };
+      },
+    );
     return NextResponse.json({ availabilityEvents });
   } catch (error) {
     console.error('Error fetching availability:', error);
