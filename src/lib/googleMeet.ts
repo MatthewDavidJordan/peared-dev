@@ -32,6 +32,7 @@ export default async function createGoogleMeetWithParticipants(startTime: string
           conferenceSolutionKey: {
             type: 'hangoutsMeet',
           },
+          conferenceDataVersion: 1,
         },
       },
     };
