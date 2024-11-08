@@ -10,10 +10,10 @@ import { redirect } from 'next/navigation';
 import { Fragment } from 'react';
 
 function generateWhenString(start_time: string, end_time: string) {
-  const dateString = new Date(start_time).toLocaleDateString();
+  const dateString = new Date(start_time + 'Z').toLocaleDateString();
 
-  const startTimeString = new Date(start_time).toLocaleTimeString();
-  const endTimeString = new Date(end_time).toLocaleTimeString();
+  const startTimeString = new Date(start_time + 'Z').toLocaleTimeString();
+  const endTimeString = new Date(end_time + 'Z').toLocaleTimeString();
 
   return `${dateString} ${startTimeString} - ${endTimeString}`;
 }
