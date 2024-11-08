@@ -64,6 +64,7 @@ export async function createGoogleMeetWithParticipants({
           conferenceSolutionKey: {
             type: 'hangoutsMeet',
           },
+          conferenceDataVersion: 1,
         },
       },
     };
