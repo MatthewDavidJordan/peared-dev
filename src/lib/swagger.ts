@@ -1,13 +1,14 @@
+// app/lib/swagger.ts
 import { createSwaggerSpec } from 'next-swagger-doc';
 
-export const getApiDocs = async () => {
+export const getApiDocs = () => {
   const spec = createSwaggerSpec({
-    apiFolder: 'src/app/api',
+    apiFolder: 'app/api',
     definition: {
       openapi: '3.0.0',
       info: {
-        title: 'Next.js Swagger API Example',
-        version: '1.0.0',
+        title: 'Your API Documentation',
+        version: '1.0',
       },
     },
   });
