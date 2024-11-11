@@ -152,6 +152,22 @@ export const createStudent = async (
   return studentData;
 };
 
+// update the profile first and last name given profile_id and new first and last name
+export const updateProfile = async (
+  profile_id: number,
+  first_name: string,
+  last_name: string,
+): Promise<Profile> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ first_name, last_name })
+    .eq('id', profile_id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
 export const createAdvisor = async (
   email: string,
   first_name: string,

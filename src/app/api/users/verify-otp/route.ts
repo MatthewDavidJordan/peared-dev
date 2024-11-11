@@ -1,7 +1,99 @@
-// /app/api/users/verify-otp/route.ts
 import { NextResponse } from 'next/server';
 import { createStudent, verifyUserOtp } from '@/lib/queries';
 import { z } from 'zod';
+
+/**
+ * @swagger
+ * /api/users/verify-otp:
+ *   post:
+ *     tags:
+ *       - Authentication
+ *     summary: Verify OTP for user
+ *     description: |
+ *       Verifies a one-time password (OTP) sent to user's email.
+ *       On successful verification, returns user data.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otp
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User's email address
+ *                 example: "user@example.com"
+ *               otp:
+ *                 type: string
+ *                 minLength: 6
+ *                 maxLength: 6
+ *                 description: 6-digit one-time password
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: string
+ *                       example: "user@example.com"
+ *                     user_id:
+ *                       type: string
+ *                       example: "123e4567-e89b-12d3-a456-426614174000"
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2024-01-01T10:00:00.000Z"
+ *       400:
+ *         description: Invalid input or OTP verification failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - type: object
+ *                   properties:
+ *                     error:
+ *                       type: string
+ *                       example: "Invalid input"
+ *                     details:
+ *                       type: object
+ *                       properties:
+ *                         email:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                           example: ["Invalid email"]
+ *                         otp:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                           example: ["Must be exactly 6 characters"]
+ *                 - type: object
+ *                   properties:
+ *                     error:
+ *                       type: string
+ *                       example: "OTP verification failed"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "An unknown error occurred"
+ */
 
 const VerifyOtpSchema = z.object({
   email: z.string().email(),

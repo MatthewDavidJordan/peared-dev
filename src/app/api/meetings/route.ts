@@ -1,8 +1,126 @@
-// src/app/api/meetings/route.ts
 import { createGoogleMeetWithParticipants } from '@/lib/googleMeet';
 import { createMeeting, getAdvisorById, getStudentById, Meeting } from '@/lib/queries';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+
+/**
+ * @swagger
+ * /api/meetings:
+ *   post:
+ *     tags:
+ *       - Meetings
+ *     summary: Create a new meeting
+ *     description: |
+ *       Creates a new meeting between an advisor and a student.
+ *       This will:
+ *       1. Validate the input data
+ *       2. Verify advisor and student exist
+ *       3. Create a Google Meet link
+ *       4. Create a meeting record in the database
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - advisor_id
+ *               - student_id
+ *               - start_time
+ *               - end_time
+ *             properties:
+ *               advisor_id:
+ *                 type: integer
+ *                 description: ID of the advisor
+ *                 example: 1
+ *               student_id:
+ *                 type: integer
+ *                 description: ID of the student
+ *                 example: 1
+ *               start_time:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Meeting start time in ISO format
+ *                 example: "2024-01-01T10:00:00.000Z"
+ *               end_time:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Meeting end time in ISO format
+ *                 example: "2024-01-01T11:00:00.000Z"
+ *     responses:
+ *       200:
+ *         description: Meeting successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 meeting_id:
+ *                   type: integer
+ *                   example: 1
+ *                 advisor_id:
+ *                   type: integer
+ *                   example: 1
+ *                 student_id:
+ *                   type: integer
+ *                   example: 1
+ *                 start_time:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2024-01-01T10:00:00.000Z"
+ *                 end_time:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2024-01-01T11:00:00.000Z"
+ *                 meeting_url:
+ *                   type: string
+ *                   example: "https://meet.google.com/abc-defg-hij"
+ *       400:
+ *         description: Invalid input data or missing emails
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid input"
+ *                 details:
+ *                   type: object
+ *                   example: {
+ *                     "advisor_id": ["Required"],
+ *                     "start_time": ["Invalid date format"]
+ *                   }
+ *       404:
+ *         description: Advisor or student not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Advisor not found"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "An unknown error occurred"
+ *                 type:
+ *                   type: string
+ *                   example: "Error"
+ *                 status:
+ *                   type: integer
+ *                   example: 500
+ *                 code:
+ *                   type: string
+ *                   example: "INTERNAL_SERVER_ERROR"
+ */
 
 const CreateMeetingSchema = z.object({
   advisor_id: z.union([z.string(), z.number()]).transform((val) => Number(val)),
