@@ -31,7 +31,7 @@
     "react-awesome-reveal": "^4.2.12",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18",
-    "swagger-ui-react": "^5.18.1",
+    "swagger-ui-react": "^5.18.2",
     "tailwind-merge": "^2.5.3",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.8"

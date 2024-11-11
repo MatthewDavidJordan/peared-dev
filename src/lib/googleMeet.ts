@@ -64,9 +64,9 @@ export async function createGoogleMeetWithParticipants({
           conferenceSolutionKey: {
             type: 'hangoutsMeet',
           },
-          conferenceDataVersion: 1,
         },
       },
+      guestsCanModify: true,
     };
 
     console.log('Creating calendar event with:', {
