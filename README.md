@@ -25,7 +25,7 @@ cd peared
 npm install
 ```
 
-3. Set up environment variables
+3. Set up your .env.local. Copy the .env.example then replace with real env variables
 
 ```bash
 cp .env.example .env.local
@@ -60,12 +60,9 @@ npm run dev
 src/
 ├── app/                    # App Router directory
 │   ├── api/               # API routes
-│   ├── (auth)/            # Auth-related routes
 │   ├── components/        # Shared components
-│   ├── lib/               # Utility functions
-│   └── providers/         # Context providers
-├── middleware.ts          # Next.js middleware
-└── types/                 # TypeScript types
+│   └── lib/               # Utility functions
+└── middleware.ts          # Next.js middleware
 ```
 
 ## Key Features & Implementation Notes
@@ -76,39 +73,6 @@ src/
 - Client Components must be marked with `'use client'`
 - Keep large dependencies in Server Components when possible
 
-### Data Fetching
-
-```typescript
-// Example of Server Component data fetching
-async function Page() {
-  const data = await fetchData()
-  return <main>{/* ... */}</main>
-}
-```
-
-### Server Actions
-
-- Located in `app/actions/`
-- Used for form submissions and data mutations
-
-```typescript
-'use server';
-async function submitForm(data: FormData) {
-  // ...
-}
-```
-
-### Route Handlers
-
-- API routes in `app/api/`
-
-```typescript
-// app/api/example/route.ts
-export async function GET() {
-  return Response.json({ data: 'example' });
-}
-```
-
 ## Supabase Integration
 
 ### Generating Types
@@ -118,26 +82,6 @@ Run this command after Supabase schema changes:
 ```bash
 npx supabase gen types --lang=typescript --project-id "qnnvkccawpctdlmehnbd" --schema public > src/types/supabase.ts
 ```
-
-## Environment Setup
-
-### Required Environment Variables
-
-#### Supabase Configuration
-
-- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
-- `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key
-
-#### Google OAuth Configuration
-
-- `GOOGLE_CLIENT_ID`: Google OAuth client ID
-- `GOOGLE_CLIENT_SECRET`: Google OAuth client secret
-- `GOOGLE_REFRESH_TOKEN`: Google refresh token for continuous authentication
-
-#### Application Configuration
-
-- `NEXT_PUBLIC_BASE_URL`: Base URL for your application (use `http://localhost:3000` for local development)
 
 ## Styling
 
@@ -159,8 +103,23 @@ npm run dev
 
 ### Build for Production
 
+Before commiting any working branch, please make sure the following works successfully:
+
+1. Clear any existing .next/ folder
+
+```bash
+rm -rf .next/
+```
+
+2. Create a production build
+
 ```bash
 npm run build
+```
+
+3. Run the production build
+
+```bash
 npm start
 ```
 
