@@ -3,6 +3,16 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
+  // Check if the request is for the API docs
+  if (request.nextUrl.pathname.startsWith('/api-docs')) {
+    const host = request.headers.get('host');
+
+    // Only allow access on localhost:3000
+    if (!host?.includes('localhost:3000')) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+
   // Get the response
   const response = NextResponse.next();
 
@@ -14,7 +24,7 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
-// Only apply to API routes
+// Apply to both API routes and API docs
 export const config = {
-  matcher: '/api/:path*',
+  matcher: ['/api/:path*', '/api-docs/:path*'],
 };

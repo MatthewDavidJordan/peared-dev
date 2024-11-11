@@ -54,6 +54,18 @@ NEXT_PUBLIC_BASE_URL="http://localhost:3000"
 npm run dev
 ```
 
+## API Documentation
+
+Our API documentation is available at `/api-docs` when running the development server locally. This documentation is built using Swagger UI and provides:
+
+- Detailed endpoint descriptions
+- Request/response schemas
+- Interactive API testing interface
+
+You can access it at http://localhost:3000/api-docs (only available in development environment)
+
+> **Note**: The API documentation is intentionally restricted to local development for security purposes and is not available in production.
+
 ## Project Structure
 
 ```
