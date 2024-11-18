@@ -1,4 +1,5 @@
 'use client';
+import MeetingQuestionnaire from '@/app/book/[advisor_id]/MeetingQuestionnaire';
 import { DEFAULT_MEETING_DURATION_MS } from '@/lib/consts';
 import { cn } from '@/lib/funcs';
 import {
@@ -9,7 +10,7 @@ import {
 } from '@/lib/queries';
 import { useRouter } from 'next/navigation';
 import { parseAsIsoDateTime, useQueryState } from 'nuqs';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import AdvisorPreview from './AdvisorPreview';
 import OtpCard from './OtpCard';
 import SignUpForm from './SignUpForm';
@@ -139,6 +140,40 @@ export default function BookCard({ advisor, school }: BookCardProps) {
     [advisor.advisor_id, router, selectedTime],
   );
 
+  const rightPanel = useMemo(() => {
+    if (!selectedTime)
+      return (
+        <TimeForm
+          availabilities={bookingState.availabilities}
+          selectedTime={selectedTime}
+          setSelectedTime={setSelectedTime}
+        />
+      );
+    else if (!bookingState.showOtp)
+      return (
+        <SignUpForm
+          advisorId={advisor.advisor_id}
+          selectedTime={selectedTime}
+          setSelectedTime={setSelectedTime}
+          onOtpRequired={handleOtpRequired}
+        />
+      );
+    // TODO: we need a better state system for what screen to show
+    else if (false)
+      return <MeetingQuestionnaire advisor={advisor} schoolName={school.school_name} />;
+    else return <OtpCard email={bookingState.otpEmail} onVerified={handleOtpVerified} />;
+  }, [
+    advisor,
+    bookingState.availabilities,
+    bookingState.otpEmail,
+    bookingState.showOtp,
+    handleOtpRequired,
+    handleOtpVerified,
+    school.school_name,
+    selectedTime,
+    setSelectedTime,
+  ]);
+
   if (bookingState.isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -155,26 +190,7 @@ export default function BookCard({ advisor, school }: BookCardProps) {
     >
       <AdvisorPreview advisor={advisor} school={school} />
 
-      {!selectedTime ? (
-        <TimeForm
-          availabilities={bookingState.availabilities}
-          selectedTime={selectedTime}
-          setSelectedTime={setSelectedTime}
-        />
-      ) : !bookingState.showOtp ? (
-        <div className="flex w-full flex-col lg:flex-row">
-          <SignUpForm
-            advisorId={advisor.advisor_id}
-            selectedTime={selectedTime}
-            setSelectedTime={setSelectedTime}
-            onOtpRequired={handleOtpRequired}
-          />
-        </div>
-      ) : (
-        <div>
-          <OtpCard email={bookingState.otpEmail} onVerified={handleOtpVerified} />
-        </div>
-      )}
+      {rightPanel}
     </div>
   );
 }
