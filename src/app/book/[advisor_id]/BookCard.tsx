@@ -1,5 +1,6 @@
 'use client';
 import MeetingQuestionnaire from '@/app/book/[advisor_id]/MeetingQuestionnaire';
+import NewUserQuestionnaire from '@/app/book/[advisor_id]/NewUserQuestionnaire';
 import { DEFAULT_MEETING_DURATION_MS } from '@/lib/consts';
 import { cn } from '@/lib/funcs';
 import {
@@ -141,6 +142,7 @@ export default function BookCard({ advisor, school }: BookCardProps) {
   );
 
   const rightPanel = useMemo(() => {
+    return <NewUserQuestionnaire />;
     if (!selectedTime)
       return (
         <TimeForm
@@ -161,6 +163,7 @@ export default function BookCard({ advisor, school }: BookCardProps) {
     // TODO: we need a better state system for what screen to show
     else if (false)
       return <MeetingQuestionnaire advisor={advisor} schoolName={school.school_name} />;
+    else if (false) return <NewUserQuestionnaire />;
     else return <OtpCard email={bookingState.otpEmail} onVerified={handleOtpVerified} />;
   }, [
     advisor,
