@@ -1,3 +1,4 @@
+import SignOutButton from '@/components/SignOutButton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -17,6 +18,7 @@ export default function NavBar() {
           <Link href="/contact">Contact Us</Link>
         </Button>
       </div>
+      <SignOutButton />
       {/* <div>
         <Button variant="secondaryLink" asChild className="font-light">
           <Link href="/login">Login</Link>
