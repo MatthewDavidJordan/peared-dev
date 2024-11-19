@@ -1,5 +1,6 @@
 'use client';
 import { DEFAULT_MEETING_DURATION_MS, FALLBACK_IMAGE } from '@/lib/consts';
+import { getAdvisorName } from '@/lib/funcs';
 import { type getAdvisorById, type getCollegeById } from '@/lib/queries';
 import { Clock, Globe, Undo2 } from 'lucide-react';
 import Image from 'next/image';
@@ -14,9 +15,7 @@ export default function AdvisorPreview({
 }) {
   const meetingLengthMinString = Math.round(DEFAULT_MEETING_DURATION_MS / 1000 / 60).toString();
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const advisorName = advisor.profiles
-    ? `${advisor.profiles.first_name} ${advisor.profiles.last_name}`
-    : 'Advisor';
+  const advisorName = getAdvisorName(advisor);
 
   return (
     <div>
