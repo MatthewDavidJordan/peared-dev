@@ -1,12 +1,11 @@
 // SignUpForm.tsx
 'use client';
-import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DEFAULT_MEETING_DURATION_MS } from '@/lib/consts';
-import { cn } from '@/lib/funcs';
-import { useRouter } from 'next/navigation';
 import { getStudentIdByUserId } from '@/lib/queries';
+import { useRouter } from 'next/navigation';
+import { useCallback, useState } from 'react';
 
 function isEmailValid(email: string) {
   return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g.test(email);
@@ -106,45 +105,47 @@ export default function SignUpForm({
   }, [advisorId, canConfirm, email, first_name, last_name, router, selectedTime, onOtpRequired]);
 
   return (
-    <div className="lg:!h-96 lg:!w-96">
-      <div className="flex h-full flex-col gap-4 px-5 py-4">
-        <label>Email *</label>
-        <Input
-          placeholder="example@example.com"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        {!!showRequiredFieldErrors && !isEmailValid(email) && <RequiredFieldError />}
+    <div className="flex w-full flex-col lg:flex-row">
+      <div className="lg:!h-96 lg:!w-96">
+        <div className="flex h-full flex-col gap-4 px-5 py-4">
+          <label>Email *</label>
+          <Input
+            placeholder="example@example.com"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          {!!showRequiredFieldErrors && !isEmailValid(email) && <RequiredFieldError />}
 
-        <label>First Name *</label>
-        <Input
-          placeholder="John"
-          value={first_name}
-          onChange={(e) => setFirstName(e.target.value)}
-        />
-        {!!showRequiredFieldErrors && first_name.length === 0 && <RequiredFieldError />}
+          <label>First Name *</label>
+          <Input
+            placeholder="John"
+            value={first_name}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
+          {!!showRequiredFieldErrors && first_name.length === 0 && <RequiredFieldError />}
 
-        <label>Last Name *</label>
-        <Input
-          placeholder="Smith"
-          value={last_name}
-          onChange={(e) => setLastName(e.target.value)}
-        />
-        {!!showRequiredFieldErrors && last_name.length === 0 && <RequiredFieldError />}
+          <label>Last Name *</label>
+          <Input
+            placeholder="Smith"
+            value={last_name}
+            onChange={(e) => setLastName(e.target.value)}
+          />
+          {!!showRequiredFieldErrors && last_name.length === 0 && <RequiredFieldError />}
 
-        <div className="mt-4 flex justify-end gap-2">
-          <Button variant="outline" onClick={() => setSelectedTime(null)} disabled={isLoading}>
-            Back
-          </Button>
-          <Button
-            onClick={confirm}
-            className="relative"
-            disabled={isLoading}
-            variant="primaryToAccent"
-          >
-            Confirm
-          </Button>
+          <div className="mt-4 flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setSelectedTime(null)} disabled={isLoading}>
+              Back
+            </Button>
+            <Button
+              onClick={confirm}
+              className="relative"
+              disabled={isLoading}
+              variant="primaryToAccent"
+            >
+              Confirm
+            </Button>
+          </div>
         </div>
       </div>
     </div>
