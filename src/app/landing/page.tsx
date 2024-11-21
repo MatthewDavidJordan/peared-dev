@@ -104,9 +104,9 @@ export default function LandingPage() {
             <div className="max-w-2xl">
               <h2 className="mb-6 text-5xl font-bold text-[#3e516e] md:text-6xl">Chat</h2>
               <p className="text-xl font-medium leading-relaxed text-[#3e516e]/80 md:text-2xl">
-                The best way to learn about a school is to talk to current students. If you don't
-                have many questions our advisors come prepared with a slideshow to get the ball
-                rolling.
+                The best way to learn about a school is to talk to current students. If you
+                don&apos;t have many questions our advisors come prepared with a slideshow to get
+                the ball rolling.
               </p>
             </div>
             <div className="w-full max-w-xl">
