@@ -62,35 +62,37 @@ export default function OtpCard({ email, onVerified }: OtpCardProps) {
   }, [handleOtpSubmit, otp.length]);
 
   return (
-    <div className="flex h-full flex-col gap-5 px-5 py-4">
-      <div className="flex flex-col gap-2">
-        <h3 className="text-lg font-semibold">Enter OTP</h3>
-        <p className="text-sm text-zinc-600">
-          We&apos;ve sent you an email with 6 digit code. Enter that code here
-        </p>
+    <div>
+      <div className="flex h-full flex-col gap-5 px-5 py-4">
+        <div className="flex flex-col gap-2">
+          <h3 className="text-lg font-semibold">Enter OTP</h3>
+          <p className="text-sm text-zinc-600">
+            We&apos;ve sent you an email with 6 digit code. Enter that code here
+          </p>
+        </div>
+        <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+          <InputOTPGroup>
+            {[...Array(6)].map((_, index) => (
+              <InputOTPSlot key={index} index={index} />
+            ))}
+          </InputOTPGroup>
+        </InputOTP>
+
+        {errorMessage && (
+          <p className="text-sm text-red-600" role="alert">
+            {errorMessage}
+          </p>
+        )}
+
+        <Button
+          onClick={handleOtpSubmit}
+          disabled={isLoading || otp.length < 6}
+          variant="primaryToAccent"
+          className="w-full"
+        >
+          {isLoading ? 'Verifying...' : 'Submit OTP'}
+        </Button>
       </div>
-      <InputOTP maxLength={6} value={otp} onChange={setOtp}>
-        <InputOTPGroup>
-          {[...Array(6)].map((_, index) => (
-            <InputOTPSlot key={index} index={index} />
-          ))}
-        </InputOTPGroup>
-      </InputOTP>
-
-      {errorMessage && (
-        <p className="text-sm text-red-600" role="alert">
-          {errorMessage}
-        </p>
-      )}
-
-      <Button
-        onClick={handleOtpSubmit}
-        disabled={isLoading || otp.length < 6}
-        variant="primaryToAccent"
-        className="w-full"
-      >
-        {isLoading ? 'Verifying...' : 'Submit OTP'}
-      </Button>
     </div>
   );
 }
