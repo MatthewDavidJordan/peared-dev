@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import React from 'react';
 import './globals.css';
 
-import iconLignt from '@/public/LightMode.ico';
-import iconDark from '@/public/images/favicon.ico';
+import iconLignt from '@/../public/LightMode.ico';
+import iconDark from '@/../public/favicon.ico';
 
 export const metadata: Metadata = {
   title: 'peared',
