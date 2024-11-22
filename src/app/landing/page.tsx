@@ -55,7 +55,7 @@ export default function LandingPage() {
               <h2 className="mb-6 text-5xl font-bold text-[#c4db6e] md:text-6xl">Browse</h2>
               <p className="text-xl font-medium leading-relaxed text-[#fef9e3] md:text-2xl">
                 Browse through our vetted advisors to find the most relevant match for you. We
-                recommend looking for advisors with similar majors, hometowns, or extracurricilars.
+                recommend looking for advisors with similar majors, hometowns, or extracurriculars.
               </p>
             </div>
             <div className="w-full max-w-xl">
