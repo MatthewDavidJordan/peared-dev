@@ -12,7 +12,6 @@ import {
   type getAdvisorById,
   type getCollegeById,
 } from '@/lib/queries';
-import { createSupabaseClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { parseAsIsoDateTime, useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -77,21 +76,12 @@ interface BookCardProps {
 }
 
 export default function BookCard({ advisor, school }: BookCardProps) {
-  const supabase = createSupabaseClient();
   const router = useRouter();
+  const { user, student } = useAuth();
+
   const [selectedTime, setSelectedTime] = useQueryState('time', parseAsIsoDateTime);
   const [isLoadingAvailabilities, setIsLoadingAvailabilities] = useState(true);
   const [availabilities, setAvailabilities] = useState<AvailabilityEvent[]>([]);
-  const { user, student } = useAuth();
-  console.log('fuck', student);
-
-  // const { data: student } = useAsync({
-  //   promiseFn: () =>
-  //     fetch('/student', {
-  //       method: 'POST',
-  //       body: JSON.stringify({ user_id: user?.data.user?.id }),
-  //     }).then((res) => res.json() as Promise<Student>),
-  // });
   const [otpEmail, setOtpEmail] = useState<string | null>(null);
 
   useEffect(() => {

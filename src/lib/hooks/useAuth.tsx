@@ -15,12 +15,6 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-// async function getStudent() {
-//   'use server';
-//   const supabase = createSupabaseClient();
-//   await supabase.from('students').select('*').eq('profile_id', supabase.auth.user()?.id).single();
-// }
-
 export function AuthContextProvider({ children }: { children: ReactNode }) {
   const supabase = createSupabaseClient();
 
