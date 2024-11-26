@@ -1,14 +1,13 @@
 import NavBar from '@/components/NavBar';
+import { cn } from '@/lib/funcs';
 import { getAllColleges, type College } from '@/lib/queries';
 import Image from 'next/image';
 import Link from 'next/link';
-import { cn } from '@/lib/funcs';
-import { redirect } from 'next/navigation';
 
 export const revalidate = 0;
 
 export default async function Home() {
-  redirect('/landing');
+  // redirect('/landing');
 
   return (
     <div className="flex min-h-screen w-full flex-col">

@@ -2,11 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { createSupabaseClient } from '@/lib/supabase';
 import { useCallback, useEffect, useState } from 'react';
 
 interface OtpCardProps {
   email: string;
-  onVerified: (user_id: number) => Promise<void>;
+  onVerified: (user_id: string) => Promise<void>;
 }
 
 interface VerifyOtpResponse {
@@ -32,6 +33,7 @@ async function verifyOtp(email: string, otp: string): Promise<VerifyOtpResponse>
 }
 
 export default function OtpCard({ email, onVerified }: OtpCardProps) {
+  const supabase = createSupabaseClient();
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -43,8 +45,18 @@ export default function OtpCard({ email, onVerified }: OtpCardProps) {
     setErrorMessage('');
 
     try {
-      const data = await verifyOtp(email, otp);
-      await onVerified(data.user.user_id);
+      // const data = await verifyOtp(email, otp);
+      const {
+        data: { user, session },
+      } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'email',
+      });
+      if (!user || !session) throw new Error('');
+
+      // TODO:
+      // await onVerified(user.id);
     } catch (error) {
       console.error('Error verifying OTP:', error);
       setErrorMessage(

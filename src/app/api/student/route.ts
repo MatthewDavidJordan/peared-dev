@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
 import {
   createStudent,
-  getProfileIdByUserId,
   getProfileByProfileId,
-  studentExists,
+  getProfileIdByUserId,
   getStudentByProfileId,
+  studentExists,
 } from '@/lib/queries';
+import { NextResponse } from 'next/server';
 
 /**
  * @swagger

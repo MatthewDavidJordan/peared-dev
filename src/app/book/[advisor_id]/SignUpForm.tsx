@@ -2,8 +2,7 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { DEFAULT_MEETING_DURATION_MS } from '@/lib/consts';
-import { getStudentIdByUserId } from '@/lib/queries';
+import { createSupabaseClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 
@@ -56,6 +55,7 @@ export default function SignUpForm({
   setSelectedTime: (value: Date | null) => void;
   onOtpRequired: (email: string) => void;
 }) {
+  const supabase = createSupabaseClient();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [first_name, setFirstName] = useState('');
@@ -74,27 +74,34 @@ export default function SignUpForm({
     try {
       setIsLoading(true);
 
-      const response = await createUser(email, first_name, last_name);
+      await supabase.auth.signInWithOtp({
+        email,
+      });
+      // const response = await createUser(email, first_name, last_name);
       // response is either { otpSent: true } or { user: AuthUser }
 
-      if (response.otpSent) {
+      if (
+        true
+        // response.otpSent
+      ) {
         // Notify parent component (BookCard) that OTP is required
         // log that we are calling onOtpRequired in SignUpForm.tsx
         console.log('calling onOtpRequired in SignUpForm.tsx');
         onOtpRequired(email); // Pass the email when OTP is required
-      } else if (response.user) {
+      } else if (
+        // response.user
+        false
+      ) {
         // we already have this student being tracked, so we can create the meeting
-        const student: Awaited<ReturnType<typeof getStudentIdByUserId>> =
-          await getStudentIdByUserId(response.user.user_id);
-
-        // Define the start and end times for the meeting
-        const startTime = selectedTime.toISOString();
-        const endTime = new Date(
-          selectedTime.getTime() + DEFAULT_MEETING_DURATION_MS,
-        ).toISOString();
-
-        const meeting = await createMeeting(advisorId, student.student_id, startTime, endTime);
-        router.push(`/meeting/${meeting.meeting_id}`);
+        // const student: Awaited<ReturnType<typeof getStudentIdByUserId>> =
+        //   await getStudentIdByUserId(response.user.user_id);
+        // // Define the start and end times for the meeting
+        // const startTime = selectedTime.toISOString();
+        // const endTime = new Date(
+        //   selectedTime.getTime() + DEFAULT_MEETING_DURATION_MS,
+        // ).toISOString();
+        // const meeting = await createMeeting(advisorId, student.student_id, startTime, endTime);
+        // router.push(`/meeting/${meeting.meeting_id}`);
       }
 
       setIsLoading(false);
@@ -106,7 +113,7 @@ export default function SignUpForm({
 
   return (
     <div className="flex w-full flex-col lg:flex-row">
-      <div className="lg:!h-96 lg:!w-96">
+      <div className="lg:!min-h-96 lg:!w-96">
         <div className="flex h-full flex-col gap-4 px-5 py-4">
           <label>Email *</label>
           <Input
