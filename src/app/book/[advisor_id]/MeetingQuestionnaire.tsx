@@ -13,6 +13,7 @@ import { type getAdvisorById } from '@/lib/queries';
 import { useCallback, useState } from 'react';
 
 const reasons = [
+  'Please select',
   'Application Help',
   'General School Overview',
   'ED/Commitment Decision Assistance',
@@ -43,6 +44,11 @@ export default function MeetingQuestionnaire({
   const [isLoading, setIsLoading] = useState(false);
 
   const onClick = useCallback(async () => {
+    if (reason === 'Please select') {
+      setErrorMessage('Please select a valid reason for the call.');
+      return;
+    }
+
     setIsLoading(true);
     try {
       await onContinue({ college_familiarity: familiarity, reason, extra_info: extraInfo });
@@ -60,14 +66,14 @@ export default function MeetingQuestionnaire({
         <div className="flex h-full flex-col gap-4 px-5 py-4">
           <label>How much do you know about {schoolName}? *</label>
           <div className="flex gap-3">
-            <p>1</p>
+            <p>(Nothing) 0</p>
             <Slider
               value={[familiarity]}
               onValueChange={([value]) => setFamiliarity(value!)}
               max={5}
               step={1}
             />
-            <p>5</p>
+            <p>5 (A lot!)</p>
           </div>
           <label>What is your main reason for the call? *</label>
           <Select value={reason} onValueChange={setReason}>
@@ -98,7 +104,7 @@ export default function MeetingQuestionnaire({
               disabled={isLoading}
               variant="primaryToAccent"
             >
-              Confirm
+              Confirm & Book
             </Button>
           </div>
         </div>
