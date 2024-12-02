@@ -2,12 +2,14 @@
 
 import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { createSupabaseClient } from '@/lib/supabase';
+import type { Setter } from '@/lib/types';
 import { useCallback, useEffect, useState } from 'react';
 
 interface OtpCardProps {
   email: string;
-  onVerified: (user_id: string) => Promise<void>;
+  setOtpEmail: Setter<string | null>;
 }
 
 interface VerifyOtpResponse {
@@ -17,26 +19,13 @@ interface VerifyOtpResponse {
   };
 }
 
-async function verifyOtp(email: string, otp: string): Promise<VerifyOtpResponse> {
-  const response = await fetch('/api/users/verify-otp', {
-    method: 'POST',
-    cache: 'no-cache',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, otp }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Invalid OTP');
-  }
-
-  return response.json();
-}
-
-export default function OtpCard({ email, onVerified }: OtpCardProps) {
+export default function OtpCard({ email, setOtpEmail }: OtpCardProps) {
   const supabase = createSupabaseClient();
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const { createStudent } = useAuth();
 
   const handleOtpSubmit = useCallback(async () => {
     if (otp.length !== 6) return;
@@ -45,7 +34,6 @@ export default function OtpCard({ email, onVerified }: OtpCardProps) {
     setErrorMessage('');
 
     try {
-      // const data = await verifyOtp(email, otp);
       const {
         data: { user, session },
       } = await supabase.auth.verifyOtp({
@@ -55,8 +43,12 @@ export default function OtpCard({ email, onVerified }: OtpCardProps) {
       });
       if (!user || !session) throw new Error('');
 
-      // TODO:
-      // await onVerified(user.id);
+      console.log('bal');
+
+      await createStudent(user.id);
+      console.log('done');
+
+      setOtpEmail(null);
     } catch (error) {
       console.error('Error verifying OTP:', error);
       setErrorMessage(
@@ -67,7 +59,7 @@ export default function OtpCard({ email, onVerified }: OtpCardProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [email, otp, onVerified]);
+  }, [otp, supabase.auth, email, createStudent, setOtpEmail]);
 
   useEffect(() => {
     if (otp.length === 6) handleOtpSubmit();

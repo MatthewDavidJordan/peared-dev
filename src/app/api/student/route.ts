@@ -122,11 +122,7 @@ export async function POST(req: Request) {
     }
 
     // create a new student
-    const student = await createStudent(
-      profile.id.toString(),
-      profile.first_name,
-      profile.last_name,
-    );
+    const student = await createStudent(profile.id, profile.first_name, profile.last_name);
     if (!student) {
       throw new Error(
         'Failed to create student after finding that student does not exist in /api/student',
@@ -138,6 +134,7 @@ export async function POST(req: Request) {
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    console.error(error);
     return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
   }
 }

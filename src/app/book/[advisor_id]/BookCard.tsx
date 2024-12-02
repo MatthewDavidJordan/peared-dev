@@ -6,12 +6,7 @@ import NewUserQuestionnaire from '@/app/book/[advisor_id]/NewUserQuestionnaire';
 import { DEFAULT_MEETING_DURATION_MS } from '@/lib/consts';
 import { cn } from '@/lib/funcs';
 import { useAuth } from '@/lib/hooks/useAuth';
-import {
-  type AvailabilityEvent,
-  type Student,
-  type getAdvisorById,
-  type getCollegeById,
-} from '@/lib/queries';
+import { type AvailabilityEvent, type getAdvisorById, type getCollegeById } from '@/lib/queries';
 import { useRouter } from 'next/navigation';
 import { parseAsIsoDateTime, useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -21,19 +16,6 @@ import SignUpForm from './SignUpForm';
 import TimeForm from './TimeForm';
 
 // API client functions
-const createStudent = async (userId: string): Promise<Student> => {
-  const response = await fetch('/api/student', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: userId }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to create student');
-  }
-
-  return response.json();
-};
 
 const createMeeting = async (params: {
   advisorId: number;
@@ -121,13 +103,6 @@ export default function BookCard({ advisor, school }: BookCardProps) {
     [advisor.advisor_id, router, selectedTime, student],
   );
 
-  const handleOtpVerified = useCallback(async (userId: string) => {
-    // Create the student record
-    const student = await createStudent(userId);
-    // await handleMeetingCreation(student);
-    setOtpEmail(null);
-  }, []);
-
   const rightPanel = useMemo(() => {
     if (!selectedTime)
       return (
@@ -137,9 +112,8 @@ export default function BookCard({ advisor, school }: BookCardProps) {
           setSelectedTime={setSelectedTime}
         />
       );
-    // TODO: all other forms have button to go back to time form
     else if (student && !student?.completed_sign_up_form) return <NewUserQuestionnaire />;
-    else if (user)
+    else if (student && user)
       return (
         <MeetingQuestionnaire
           advisor={advisor}
@@ -156,12 +130,11 @@ export default function BookCard({ advisor, school }: BookCardProps) {
           onOtpRequired={setOtpEmail}
         />
       );
-    else return <OtpCard email={otpEmail} onVerified={handleOtpVerified} />;
+    else return <OtpCard email={otpEmail} setOtpEmail={setOtpEmail} />;
   }, [
     advisor,
     availabilities,
     handleMeetingCreation,
-    handleOtpVerified,
     otpEmail,
     school.school_name,
     selectedTime,

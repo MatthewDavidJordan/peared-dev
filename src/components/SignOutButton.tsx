@@ -9,10 +9,10 @@ const supabase = createBrowserClient(
 );
 
 export default function SignOutButton() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   if (!user) return null;
   return (
-    <Button variant="secondaryLink" className="font-light" onClick={() => supabase.auth.signOut()}>
+    <Button variant="secondaryLink" className="font-light" onClick={() => signOut()}>
       Sign Out
     </Button>
   );

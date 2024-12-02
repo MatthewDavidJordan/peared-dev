@@ -13,7 +13,13 @@ import { type getAdvisorById } from '@/lib/queries';
 import { createSupabaseClient } from '@/lib/supabase';
 import { useCallback, useState } from 'react';
 
-const reasons = ['1', '2', '3'] as const;
+const reasons = [
+  'Application Help',
+  'General School Overview',
+  'ED/Commitment Decision Assistance',
+  'Community and Culture Overview',
+  'Nightlife and Social Scene Overview',
+] as const;
 
 export type MeetingForm = {
   college_familiarity: number;

@@ -11,6 +11,8 @@ type AuthContextType = {
   student: Student | null;
   fetchProfile: () => Promise<Profile | null>;
   fetchStudent: () => Promise<Student | null>;
+  createStudent: (userId: string) => Promise<Student>;
+  signOut: () => void;
 };
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -50,6 +52,29 @@ export function AuthContextProvider({ children }: { children: ReactNode }) {
     [profile?.id, supabase],
   );
 
+  const createStudent = useCallback(async (userId: string): Promise<Student> => {
+    const response = await fetch('/api/student', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create student');
+    }
+
+    const student = await response.json();
+    setStudent(student);
+    return student;
+  }, []);
+
+  const signOut = useCallback(() => {
+    supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
+    setStudent(null);
+  }, [supabase.auth]);
+
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
@@ -70,7 +95,9 @@ export function AuthContextProvider({ children }: { children: ReactNode }) {
   }, [fetchProfile, fetchStudent, supabase]);
 
   return (
-    <AuthContext.Provider value={{ user, profile, student, fetchProfile, fetchStudent }}>
+    <AuthContext.Provider
+      value={{ user, profile, student, fetchProfile, fetchStudent, createStudent, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );

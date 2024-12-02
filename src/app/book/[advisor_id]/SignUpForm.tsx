@@ -14,16 +14,6 @@ function RequiredFieldError() {
   return <p className="flex items-center gap-1 text-sm text-red-600">This field is required</p>;
 }
 
-// API call to request user creation or OTP verification
-async function createUser(email: string, first_name: string, last_name: string) {
-  const res = await fetch('/api/users', {
-    method: 'POST',
-    cache: 'no-cache',
-    body: JSON.stringify({ email, first_name, last_name }),
-  });
-  return res.json();
-}
-
 // API call to create a meeting
 async function createMeeting(
   advisor_id: number,

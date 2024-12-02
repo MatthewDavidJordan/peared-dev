@@ -1,6 +1,6 @@
 //src/lib/queries.ts
 import type { MeetingForm } from '@/app/book/[advisor_id]/MeetingQuestionnaire';
-import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Database } from './supabase-types';
 
 // Create the typed Supabase client
@@ -87,45 +87,18 @@ export const signUpAndSignIn = async (email: string): Promise<boolean | 'new'> =
   }
 };
 
-// verify the OTP
-export const verifyUserOtp = async (
-  email: string,
-  otp: string,
-): Promise<{ user: AuthUser } | null> => {
-  // Verify the OTP
-  const { data, error } = await supabase.auth.verifyOtp({
-    email,
-    token: otp,
-    type: 'email',
-  });
-
-  if (error) {
-    console.error('OTP verification failed:', error.message);
-    return null;
-  }
-
-  const user: User = data.user!;
-
-  console.log('OTP verified successfully:', user.email, user.id);
-
-  // Return the user data
-  return { user: { user_id: user.id, email: user.email! } };
-};
-
 export const studentExists = async (profile_id: number): Promise<boolean> => {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('students')
     .select('student_id')
     .eq('profile_id', profile_id)
     .single();
-  if (error) throw error;
 
-  // Return true if a student exists with the specified profile_id
   return !!data;
 };
 
 export const createStudent = async (
-  email: string,
+  id: number,
   first_name: string,
   last_name: string,
 ): Promise<Student> => {
@@ -133,7 +106,7 @@ export const createStudent = async (
   const { data: profileData, error: profileError } = await supabase
     .from('profiles')
     .update({ first_name, last_name })
-    .eq('email', email)
+    .eq('id', id)
     .select('id')
     .single();
 
