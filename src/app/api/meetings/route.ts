@@ -127,6 +127,11 @@ const CreateMeetingSchema = z.object({
   student_id: z.union([z.string(), z.number()]).transform((val) => Number(val)),
   start_time: z.string(),
   end_time: z.string(),
+  meeting_form: z.object({
+    college_familiarity: z.number(),
+    reason: z.string(),
+    extra_info: z.string(),
+  }),
 });
 
 export type CreateMeetingRequest = z.infer<typeof CreateMeetingSchema>;
@@ -150,7 +155,7 @@ export async function POST(req: Request) {
     }
     console.log('Input validation successful');
 
-    const { advisor_id, student_id, start_time, end_time } = validatedData.data;
+    const { advisor_id, student_id, start_time, end_time, meeting_form } = validatedData.data;
 
     // Fetch advisor details
     console.log(`Fetching advisor details for ID: ${advisor_id}...`);
@@ -215,6 +220,7 @@ export async function POST(req: Request) {
       start_time,
       end_time,
       meetingUrl,
+      meeting_form,
     );
     console.log('Meeting record created:', meeting);
 

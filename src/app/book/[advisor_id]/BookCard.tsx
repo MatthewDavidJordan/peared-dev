@@ -1,14 +1,12 @@
 'use client';
-import MeetingQuestionnaire from '@/app/book/[advisor_id]/MeetingQuestionnaire';
+import MeetingQuestionnaire, {
+  type MeetingForm,
+} from '@/app/book/[advisor_id]/MeetingQuestionnaire';
 import NewUserQuestionnaire from '@/app/book/[advisor_id]/NewUserQuestionnaire';
 import { DEFAULT_MEETING_DURATION_MS } from '@/lib/consts';
 import { cn } from '@/lib/funcs';
-import {
-  type AvailabilityEvent,
-  type Student,
-  type getAdvisorById,
-  type getCollegeById,
-} from '@/lib/queries';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { type AvailabilityEvent, type getAdvisorById, type getCollegeById } from '@/lib/queries';
 import { useRouter } from 'next/navigation';
 import { parseAsIsoDateTime, useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -18,25 +16,13 @@ import SignUpForm from './SignUpForm';
 import TimeForm from './TimeForm';
 
 // API client functions
-const createStudent = async (userId: number): Promise<Student> => {
-  const response = await fetch('/api/student', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: userId }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to create student');
-  }
-
-  return response.json();
-};
 
 const createMeeting = async (params: {
   advisorId: number;
   studentId: number;
   startTime: string;
   endTime: string;
+  meetingForm: MeetingForm;
 }) => {
   const response = await fetch('/api/meetings', {
     method: 'POST',
@@ -47,6 +33,7 @@ const createMeeting = async (params: {
       student_id: params.studentId,
       start_time: params.startTime,
       end_time: params.endTime,
+      meeting_form: params.meetingForm,
     }),
   });
 
@@ -70,32 +57,21 @@ interface BookCardProps {
   school: Awaited<ReturnType<typeof getCollegeById>>;
 }
 
-interface BookingState {
-  availabilities: AvailabilityEvent[];
-  isLoading: boolean;
-  otpEmail: string;
-  showOtp: boolean;
-}
-
 export default function BookCard({ advisor, school }: BookCardProps) {
   const router = useRouter();
+  const { user, student } = useAuth();
+
   const [selectedTime, setSelectedTime] = useQueryState('time', parseAsIsoDateTime);
-  const [bookingState, setBookingState] = useState<BookingState>({
-    availabilities: [],
-    isLoading: true,
-    otpEmail: '',
-    showOtp: false,
-  });
+  const [isLoadingAvailabilities, setIsLoadingAvailabilities] = useState(true);
+  const [availabilities, setAvailabilities] = useState<AvailabilityEvent[]>([]);
+  const [otpEmail, setOtpEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const loadAvailability = async () => {
       try {
         const availabilityEvents = await fetchAvailability(advisor.advisor_id);
-        setBookingState((prev) => ({
-          ...prev,
-          availabilities: availabilityEvents,
-          isLoading: false,
-        }));
+        setAvailabilities(availabilityEvents);
+        setIsLoadingAvailabilities(false);
       } catch (error) {
         console.error('Error fetching availability:', error);
         router.push('/404');
@@ -105,22 +81,9 @@ export default function BookCard({ advisor, school }: BookCardProps) {
     loadAvailability();
   }, [advisor.advisor_id, router]);
 
-  const handleOtpRequired = useCallback((email: string) => {
-    setBookingState((prev) => ({
-      ...prev,
-      otpEmail: email,
-      showOtp: true,
-    }));
-  }, []);
-
-  const handleOtpVerified = useCallback(
-    async (userId: number) => {
-      if (!selectedTime) {
-        throw new Error('No time selected');
-      }
-
-      // Create the student record
-      const student = await createStudent(userId);
+  const handleMeetingCreation = useCallback(
+    async (meetingForm: MeetingForm) => {
+      if (!selectedTime || !student) throw new Error('Assumptions incorrect');
 
       // Calculate meeting times
       const startTime = selectedTime.toISOString();
@@ -132,52 +95,55 @@ export default function BookCard({ advisor, school }: BookCardProps) {
         studentId: student.student_id,
         startTime,
         endTime,
+        meetingForm,
       });
 
-      // Reset OTP state and redirect
-      setBookingState((prev) => ({ ...prev, showOtp: false }));
       router.push(`/meeting/${meeting.meeting_id}`);
     },
-    [advisor.advisor_id, router, selectedTime],
+    [advisor.advisor_id, router, selectedTime, student],
   );
 
   const rightPanel = useMemo(() => {
-    return <NewUserQuestionnaire />;
     if (!selectedTime)
       return (
         <TimeForm
-          availabilities={bookingState.availabilities}
+          availabilities={availabilities}
           selectedTime={selectedTime}
           setSelectedTime={setSelectedTime}
         />
       );
-    else if (!bookingState.showOtp)
+    else if (student && !student?.completed_sign_up_form) return <NewUserQuestionnaire />;
+    else if (student && user)
+      return (
+        <MeetingQuestionnaire
+          advisor={advisor}
+          schoolName={school.school_name}
+          onContinue={handleMeetingCreation}
+        />
+      );
+    else if (!otpEmail)
       return (
         <SignUpForm
           advisorId={advisor.advisor_id}
           selectedTime={selectedTime}
           setSelectedTime={setSelectedTime}
-          onOtpRequired={handleOtpRequired}
+          onOtpRequired={setOtpEmail}
         />
       );
-    // TODO: we need a better state system for what screen to show
-    else if (false)
-      return <MeetingQuestionnaire advisor={advisor} schoolName={school.school_name} />;
-    else if (false) return <NewUserQuestionnaire />;
-    else return <OtpCard email={bookingState.otpEmail} onVerified={handleOtpVerified} />;
+    else return <OtpCard email={otpEmail} setOtpEmail={setOtpEmail} />;
   }, [
     advisor,
-    bookingState.availabilities,
-    bookingState.otpEmail,
-    bookingState.showOtp,
-    handleOtpRequired,
-    handleOtpVerified,
+    availabilities,
+    handleMeetingCreation,
+    otpEmail,
     school.school_name,
     selectedTime,
     setSelectedTime,
+    student,
+    user,
   ]);
 
-  if (bookingState.isLoading) {
+  if (isLoadingAvailabilities) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-lg">Loading availability...</div>

@@ -151,39 +151,30 @@ export type Database = {
         Row: {
           advisor_id: number | null
           billing_receipt: string | null
-          college_familiarity: number | null
           created_at: string | null
           end_time: string
-          extra_info: string | null
           meeting_id: number
           meeting_url: string | null
-          reason: string | null
           start_time: string
           student_id: number | null
         }
         Insert: {
           advisor_id?: number | null
           billing_receipt?: string | null
-          college_familiarity?: number | null
           created_at?: string | null
           end_time: string
-          extra_info?: string | null
           meeting_id?: number
           meeting_url?: string | null
-          reason?: string | null
           start_time: string
           student_id?: number | null
         }
         Update: {
           advisor_id?: number | null
           billing_receipt?: string | null
-          college_familiarity?: number | null
           created_at?: string | null
           end_time?: string
-          extra_info?: string | null
           meeting_id?: number
           meeting_url?: string | null
-          reason?: string | null
           start_time?: string
           student_id?: number | null
         }

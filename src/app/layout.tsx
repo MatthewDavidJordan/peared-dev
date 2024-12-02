@@ -4,6 +4,7 @@ import './globals.css';
 
 import iconLignt from '@/../public/LightMode.ico';
 import iconDark from '@/../public/favicon.ico';
+import { AuthContextProvider } from '@/lib/hooks/useAuth';
 
 export const metadata: Metadata = {
   title: 'peared',
@@ -25,7 +26,9 @@ export const metadata: Metadata = {
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{props.children}</body>
+      <body>
+        <AuthContextProvider>{props.children}</AuthContextProvider>
+      </body>
     </html>
   );
 }
