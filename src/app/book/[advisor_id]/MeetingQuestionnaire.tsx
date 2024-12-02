@@ -10,7 +10,6 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { type getAdvisorById } from '@/lib/queries';
-import { createSupabaseClient } from '@/lib/supabase';
 import { useCallback, useState } from 'react';
 
 const reasons = [
@@ -36,11 +35,10 @@ export default function MeetingQuestionnaire({
   advisor: Awaited<ReturnType<typeof getAdvisorById>>;
   onContinue: (meetingForm: MeetingForm) => Promise<void>;
 }) {
-  const supabase = createSupabaseClient();
-
   const [familiarity, setFamiliarity] = useState(3);
   const [reason, setReason] = useState<string>(reasons[0]);
   const [extraInfo, setExtraInfo] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -48,6 +46,9 @@ export default function MeetingQuestionnaire({
     setIsLoading(true);
     try {
       await onContinue({ college_familiarity: familiarity, reason, extra_info: extraInfo });
+    } catch (e) {
+      console.error(e);
+      setErrorMessage('An error occurred while creating the meeting. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -85,6 +86,11 @@ export default function MeetingQuestionnaire({
             Anything else you want to share with {advisor.profiles?.first_name ?? 'your advisor'}?
           </label>
           <Textarea value={extraInfo} onChange={(e) => setExtraInfo(e.target.value)} />
+          {errorMessage && (
+            <p className="text-sm text-red-600" role="alert">
+              {errorMessage}
+            </p>
+          )}
           <div className="flex justify-end gap-2">
             <Button
               onClick={onClick}
