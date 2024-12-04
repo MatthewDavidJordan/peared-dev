@@ -66,14 +66,15 @@ export default function MeetingQuestionnaire({
         <div className="flex h-full flex-col gap-4 px-5 py-4">
           <label>How much do you know about {schoolName}? *</label>
           <div className="flex gap-3">
-            <p>(Nothing) 0</p>
+            <p>Nothing</p>
             <Slider
               value={[familiarity]}
               onValueChange={([value]) => setFamiliarity(value!)}
               max={5}
+              min={1}
               step={1}
             />
-            <p>5 (A lot!)</p>
+            <p>A&nbsp;lot!</p>
           </div>
           <label>What is your main reason for the call? *</label>
           <Select value={reason} onValueChange={setReason}>
