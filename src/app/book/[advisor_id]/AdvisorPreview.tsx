@@ -30,7 +30,7 @@ export default function AdvisorPreview({
         <h2 className="text-2xl font-bold">{advisorName}</h2>
         <Link
           href={`/school/${advisor.school_id}`}
-          className="flex items-center gap-1 font-extrabold text-blue-900 underline"
+          className="flex items-center gap-1 font-extrabold text-primary underline"
         >
           <Undo2 className="size-4 [&_*]:stroke-[3]" />
           {school.school_name}

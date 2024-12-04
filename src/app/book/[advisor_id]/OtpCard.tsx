@@ -5,7 +5,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { useAuth } from '@/lib/hooks/useAuth';
 import { createSupabaseClient } from '@/lib/supabase';
 import type { Setter } from '@/lib/types';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface OtpCardProps {
   email: string;
@@ -27,7 +27,7 @@ export default function OtpCard({ email, setOtpEmail }: OtpCardProps) {
 
   const { createStudent } = useAuth();
 
-  const handleOtpSubmit = useCallback(async () => {
+  const handleOtpSubmit = async () => {
     if (otp.length !== 6) return;
 
     setIsLoading(true);
@@ -41,12 +41,10 @@ export default function OtpCard({ email, setOtpEmail }: OtpCardProps) {
         token: otp,
         type: 'email',
       });
+
       if (!user || !session) throw new Error('');
 
-      console.log('bal');
-
       await createStudent(user.id);
-      console.log('done');
 
       setOtpEmail(null);
     } catch (error) {
@@ -59,11 +57,11 @@ export default function OtpCard({ email, setOtpEmail }: OtpCardProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [otp, supabase.auth, email, createStudent, setOtpEmail]);
+  };
 
   useEffect(() => {
     if (otp.length === 6) handleOtpSubmit();
-  }, [handleOtpSubmit, otp.length]);
+  }, [otp.length]);
 
   return (
     <div>

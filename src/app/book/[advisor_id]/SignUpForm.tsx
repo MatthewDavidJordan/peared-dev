@@ -2,8 +2,8 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { createSupabaseClient } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 
 function isEmailValid(email: string) {
@@ -38,15 +38,14 @@ export default function SignUpForm({
   advisorId,
   selectedTime,
   setSelectedTime,
-  onOtpRequired,
+  onSignIn,
 }: {
   advisorId: number;
   selectedTime: Date | null;
   setSelectedTime: (value: Date | null) => void;
-  onOtpRequired: (email: string) => void;
+  onSignIn: (email: string) => void;
 }) {
   const supabase = createSupabaseClient();
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [first_name, setFirstName] = useState('');
   const [last_name, setLastName] = useState('');
@@ -55,6 +54,8 @@ export default function SignUpForm({
 
   const canConfirm =
     selectedTime && isEmailValid(email) && first_name.length > 0 && last_name.length > 0;
+
+  const { createStudent } = useAuth();
 
   const confirm = useCallback(async () => {
     if (!canConfirm) {
@@ -67,39 +68,16 @@ export default function SignUpForm({
       await supabase.auth.signInWithOtp({
         email,
       });
-      // const response = await createUser(email, first_name, last_name);
-      // response is either { otpSent: true } or { user: AuthUser }
 
-      if (
-        true
-        // response.otpSent
-      ) {
-        // Notify parent component (BookCard) that OTP is required
-        // log that we are calling onOtpRequired in SignUpForm.tsx
-        console.log('calling onOtpRequired in SignUpForm.tsx');
-        onOtpRequired(email); // Pass the email when OTP is required
-      } else if (
-        // response.user
-        false
-      ) {
-        // we already have this student being tracked, so we can create the meeting
-        // const student: Awaited<ReturnType<typeof getStudentIdByUserId>> =
-        //   await getStudentIdByUserId(response.user.user_id);
-        // // Define the start and end times for the meeting
-        // const startTime = selectedTime.toISOString();
-        // const endTime = new Date(
-        //   selectedTime.getTime() + DEFAULT_MEETING_DURATION_MS,
-        // ).toISOString();
-        // const meeting = await createMeeting(advisorId, student.student_id, startTime, endTime);
-        // router.push(`/meeting/${meeting.meeting_id}`);
-      }
+      console.log('calling onOtpRequired in SignUpForm.tsx');
+      onSignIn(email);
 
       setIsLoading(false);
     } catch (error) {
       console.error('Error creating user or meeting:', error);
       setIsLoading(false);
     }
-  }, [advisorId, canConfirm, email, first_name, last_name, router, selectedTime, onOtpRequired]);
+  }, [canConfirm, supabase.auth, email, onSignIn]);
 
   return (
     <div className="flex w-full flex-col lg:flex-row">

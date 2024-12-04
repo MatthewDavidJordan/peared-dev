@@ -1,4 +1,3 @@
-import { createGoogleMeetWithParticipants } from '@/lib/googleMeet';
 import { createMeeting, getAdvisorById, getStudentById, Meeting } from '@/lib/queries';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -203,12 +202,13 @@ export async function POST(req: Request) {
       studentEmail,
     });
 
-    const meetingUrl: string = await createGoogleMeetWithParticipants({
-      startTime: start_time,
-      endTime: end_time,
-      advisorEmail,
-      studentEmail,
-    });
+    // const meetingUrl: string = await createGoogleMeetWithParticipants({
+    //   startTime: start_time,
+    //   endTime: end_time,
+    //   advisorEmail,
+    //   studentEmail,
+    // });
+    const meetingUrl = 'TEST';
 
     console.log('Google Meet created successfully:', meetingUrl);
 

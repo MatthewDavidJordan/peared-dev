@@ -3,6 +3,7 @@ import MeetingQuestionnaire, {
   type MeetingForm,
 } from '@/app/book/[advisor_id]/MeetingQuestionnaire';
 import NewUserQuestionnaire from '@/app/book/[advisor_id]/NewUserQuestionnaire';
+import { Button } from '@/components/ui/button';
 import { DEFAULT_MEETING_DURATION_MS } from '@/lib/consts';
 import { cn } from '@/lib/funcs';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -65,6 +66,7 @@ export default function BookCard({ advisor, school }: BookCardProps) {
   const [isLoadingAvailabilities, setIsLoadingAvailabilities] = useState(true);
   const [availabilities, setAvailabilities] = useState<AvailabilityEvent[]>([]);
   const [otpEmail, setOtpEmail] = useState<string | null>(null);
+  const [confirmedAccount, setConfirmedAccount] = useState(false);
 
   useEffect(() => {
     const loadAvailability = async () => {
@@ -112,6 +114,8 @@ export default function BookCard({ advisor, school }: BookCardProps) {
           setSelectedTime={setSelectedTime}
         />
       );
+    if (student && user?.email && !confirmedAccount)
+      return <ConfirmAccount email={user.email} onContinue={() => setConfirmedAccount(true)} />;
     else if (student && !student?.completed_sign_up_form) return <NewUserQuestionnaire />;
     else if (student && user)
       return (
@@ -127,13 +131,17 @@ export default function BookCard({ advisor, school }: BookCardProps) {
           advisorId={advisor.advisor_id}
           selectedTime={selectedTime}
           setSelectedTime={setSelectedTime}
-          onOtpRequired={setOtpEmail}
+          onSignIn={(otpEmail) => {
+            setOtpEmail(otpEmail);
+            setConfirmedAccount(true);
+          }}
         />
       );
     else return <OtpCard email={otpEmail} setOtpEmail={setOtpEmail} />;
   }, [
     advisor,
     availabilities,
+    confirmedAccount,
     handleMeetingCreation,
     otpEmail,
     school.school_name,
@@ -160,6 +168,30 @@ export default function BookCard({ advisor, school }: BookCardProps) {
       <AdvisorPreview advisor={advisor} school={school} />
 
       {rightPanel}
+    </div>
+  );
+}
+
+function ConfirmAccount({ email, onContinue }: { email: string; onContinue: () => void }) {
+  const { signOut } = useAuth();
+  return (
+    <div className="lg:!w-96">
+      <div className="h-full lg:!min-h-96">
+        <div className="flex h-full flex-col gap-4 px-5 py-4">
+          <h3 className="self-center text-lg font-bold">Confirm Account</h3>
+          <p>
+            Do you want to book the meeting with the email:{' '}
+            <code className="rounded bg-primary/10 px-1 py-0.5">{email}</code>
+          </p>
+          <div className="flex-1"></div>
+          <div className="flex justify-end gap-2">
+            <Button onClick={signOut} variant="outline">
+              Sign Out
+            </Button>
+            <Button onClick={onContinue}>Continue</Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
