@@ -1,6 +1,7 @@
 import SignOutButton from '@/components/SignOutButton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function NavBar() {
   return (
@@ -8,7 +9,13 @@ export default function NavBar() {
       <div>
         <Button variant="secondaryLink" asChild>
           <Link href="/">
-            <h2 className="text-lg font-bold">PearEd</h2>
+            <Image
+              src="/WordLogo.svg"
+              alt="Peared Logo"
+              width={120}
+              height={40}
+              className="h-10 w-auto"
+            />
           </Link>
         </Button>
         <Button variant="secondaryLink" asChild className="font-light">

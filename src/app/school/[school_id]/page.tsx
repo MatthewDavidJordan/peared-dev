@@ -51,7 +51,7 @@ function AdvisorCard({
       <CardFooter>
         <Link href={`/book/${advisor.advisor_id}`}>
           <Button variant="primaryToAccent" className="w-full">
-            Book a Call with {advisor.profiles?.first_name.split(' ')[0]}
+            <span>Book a Call with {advisor.profiles?.first_name.split(' ')[0]}</span>
           </Button>
         </Link>
       </CardFooter>

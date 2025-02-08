@@ -15,7 +15,7 @@ const buttonVariants = cva(
           'border border-input bg-background enabled:hover:bg-accent enabled:hover:text-accent-foreground',
         accent: 'bg-accent text-accent-foreground enabled:hover:bg-accent/90',
         primaryToAccent:
-          'relative overflow-hidden bg-primary text-accent-foreground z-10 before:pointer-events-none before:absolute before:inset-0 before:bg-accent before:transform before:scale-x-0 before:origin-left before:transition-transform before:duration-500 before:z-0 enabled:hover:before:scale-x-100 disabled:before:scale-x-0 before:-z-10',
+          'relative overflow-hidden bg-primary text-primary-foreground z-10 before:pointer-events-none before:absolute before:inset-0 before:bg-accent/80 before:transform before:scale-x-0 before:origin-left before:transition-transform before:duration-500 before:z-0 enabled:hover:before:scale-x-100 disabled:before:scale-x-0 before:-z-10',
         secondary: 'bg-secondary text-secondary-foreground enabled:hover:bg-secondary/80',
         ghost: 'enabled:hover:bg-accent enabled:hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 enabled:hover:underline',

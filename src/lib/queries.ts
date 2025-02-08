@@ -1,9 +1,10 @@
 //src/lib/queries.ts
-import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
-import { Database } from '../../supabase-types';
+import type { MeetingForm } from '@/app/book/[advisor_id]/MeetingQuestionnaire';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Database } from './supabase-types';
 
 // Create the typed Supabase client
-export const supabase: SupabaseClient<Database> = createClient<Database>(
+const supabase: SupabaseClient<Database> = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
@@ -86,45 +87,18 @@ export const signUpAndSignIn = async (email: string): Promise<boolean | 'new'> =
   }
 };
 
-// verify the OTP
-export const verifyUserOtp = async (
-  email: string,
-  otp: string,
-): Promise<{ user: AuthUser } | null> => {
-  // Verify the OTP
-  const { data, error } = await supabase.auth.verifyOtp({
-    email,
-    token: otp,
-    type: 'email',
-  });
-
-  if (error) {
-    console.error('OTP verification failed:', error.message);
-    return null;
-  }
-
-  const user: User = data.user!;
-
-  console.log('OTP verified successfully:', user.email, user.id);
-
-  // Return the user data
-  return { user: { user_id: user.id, email: user.email! } };
-};
-
 export const studentExists = async (profile_id: number): Promise<boolean> => {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('students')
     .select('student_id')
     .eq('profile_id', profile_id)
     .single();
-  if (error) throw error;
 
-  // Return true if a student exists with the specified profile_id
   return !!data;
 };
 
 export const createStudent = async (
-  email: string,
+  id: number,
   first_name: string,
   last_name: string,
 ): Promise<Student> => {
@@ -132,7 +106,7 @@ export const createStudent = async (
   const { data: profileData, error: profileError } = await supabase
     .from('profiles')
     .update({ first_name, last_name })
-    .eq('email', email)
+    .eq('id', id)
     .select('id')
     .single();
 
@@ -287,6 +261,13 @@ export const getStudentByProfileId = async (profile_id: number): Promise<Student
     .from('students')
     .select(
       `student_id,
+      completed_sign_up_form,
+      extracurriculars,
+      graduation_year,
+      high_school,
+      major,
+      profile_id,
+      student_id,
       profile_id,
       profiles (
         first_name,
@@ -309,7 +290,7 @@ export const getStudentIdByUserId = async (
   // Step 1: Retrieve the profile_id and additional fields based on user_id
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('id, email, first_name, last_name')
+    .select('*')
     .eq('user_id', user_id)
     .single();
 
@@ -400,6 +381,7 @@ export const createMeeting = async (
   startTime: Meeting['start_time'],
   endTime: Meeting['end_time'],
   meetingUrl: Meeting['meeting_url'],
+  meeting_form: MeetingForm,
 ): Promise<Meeting> => {
   const { data, error } = await supabase
     .from('meetings')
@@ -409,6 +391,7 @@ export const createMeeting = async (
       start_time: startTime,
       end_time: endTime,
       meeting_url: meetingUrl,
+      ...meeting_form,
     })
     .select()
     .single();
