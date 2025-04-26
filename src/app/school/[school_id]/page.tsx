@@ -7,11 +7,17 @@ import { getAdvisorsForCollege } from '@/lib/queries';
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default async function CollegePage({
-  params: { school_id },
-}: {
-  params: { school_id: string };
-}) {
+export default async function CollegePage(
+  props: {
+    params: Promise<{ school_id: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    school_id
+  } = params;
+
   const advisors = await getAdvisorsForCollege(Number(school_id));
 
   return (

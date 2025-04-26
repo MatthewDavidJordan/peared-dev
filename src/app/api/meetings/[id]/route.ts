@@ -106,7 +106,8 @@ import { getMeetingById, getAdvisorById, Meeting, Advisor } from '@/lib/queries'
  *                   example: "An unknown error occurred"
  */
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const meeting: Meeting = await getMeetingById(Number(params.id));
 

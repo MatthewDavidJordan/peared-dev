@@ -18,11 +18,17 @@ function generateWhenString(start_time: string, end_time: string) {
   return `${dateString} ${startTimeString} - ${endTimeString}`;
 }
 
-export default async function MeetingPage({
-  params: { meeting_id },
-}: {
-  params: { meeting_id: string };
-}) {
+export default async function MeetingPage(
+  props: {
+    params: Promise<{ meeting_id: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    meeting_id
+  } = params;
+
   const meeting = await getMeetingById(Number(meeting_id));
   if (!meeting) redirect('/404');
 

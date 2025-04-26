@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
+import { cookies, type UnsafeUnwrappedCookies } from 'next/headers';
 
 export function createSupabaseClient() {
   return createClient(
@@ -10,7 +10,7 @@ export function createSupabaseClient() {
 }
 
 export function createServerSupabaseClient<T>() {
-  const cookieStore = cookies();
+  const cookieStore = (cookies() as unknown as UnsafeUnwrappedCookies);
 
   return createServerClient<T>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
