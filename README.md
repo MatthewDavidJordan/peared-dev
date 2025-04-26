@@ -92,7 +92,7 @@ src/
 Run this command after Supabase schema changes:
 
 ```bash
-npx supabase gen types --lang=typescript --project-id "qnnvkccawpctdlmehnbd" --schema public > src/types/supabase.ts
+npx supabase gen types --lang=typescript --project-id "qnnvkccawpctdlmehnbd" --schema public > supabase-types.ts
 ```
 
 ## Styling
