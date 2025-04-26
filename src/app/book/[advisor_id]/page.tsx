@@ -4,11 +4,17 @@ import NavBar from '@/components/NavBar';
 import { getAdvisorById, getCollegeById } from '@/lib/queries';
 import { redirect } from 'next/navigation';
 
-export default async function CalendarPage({
-  params: { advisor_id: advisorIdString },
-}: {
-  params: { advisor_id: string };
-}) {
+export default async function CalendarPage(
+  props: {
+    params: Promise<{ advisor_id: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    advisor_id: advisorIdString
+  } = params;
+
   const advisorId = Number(advisorIdString);
   if (isNaN(advisorId)) redirect('/404');
 

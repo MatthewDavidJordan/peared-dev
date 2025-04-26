@@ -64,7 +64,13 @@ import { NextResponse } from 'next/server';
  *                   example: "An unknown error occurred"
  */
 
-export async function GET(req: Request, { params: { id } }: { params: { id: string } }) {
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+
+  const {
+    id
+  } = params;
+
   try {
     const college = await getCollegeById(Number(id));
     return NextResponse.json(college, { status: 200 });

@@ -33,7 +33,8 @@
       "./types",
       "node_modules/@types",
       "./src/lib/types.ts"
-    ]
+    ],
+    "target": "ES2017"
   },
   "include": [
     "next-env.d.ts",

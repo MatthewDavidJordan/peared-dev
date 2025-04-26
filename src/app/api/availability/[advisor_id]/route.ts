@@ -75,10 +75,8 @@ interface AvailabilityEvent {
   end_time: string;
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { advisor_id: string } },
-): Promise<NextResponse<{ availabilityEvents: AvailabilityEvent[] } | { error: string }>> {
+export async function GET(request: NextRequest, props: { params: Promise<{ advisor_id: string }> }): Promise<NextResponse<{ availabilityEvents: AvailabilityEvent[] } | { error: string }>> {
+  const params = await props.params;
   try {
     const advisorId = parseInt(params.advisor_id);
     const icalLink = await getAdvisorIcalLinkById(advisorId);
